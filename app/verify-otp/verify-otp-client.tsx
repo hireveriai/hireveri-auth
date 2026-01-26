@@ -1,12 +1,10 @@
 "use client";
 
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function VerifyOtpClient() {
-  const searchParams = useSearchParams();
   const router = useRouter();
-
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
 
