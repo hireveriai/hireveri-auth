@@ -1,20 +1,34 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+
+const isProd = process.env.NODE_ENV === "production";
+
+const REDIRECT_BASE = isProd
+  ? "https://app.verihireai.work"
+  : "http://localhost:3001";
 
 export default function VerifyOtpClient() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const identityId = searchParams.get("identityId");
+
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function verifyOtp() {
+    if (!identityId) {
+      alert("Missing identityId");
+      return;
+    }
+
     setLoading(true);
 
     const res = await fetch("/api/auth/verify-otp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ otp })
+      body: JSON.stringify({ otp, identityId })
     });
 
     const data = await res.json();
@@ -25,7 +39,8 @@ export default function VerifyOtpClient() {
       return;
     }
 
-    router.push("/");
+    // ✅ Redirect ONLY on client
+    window.location.href = REDIRECT_BASE;
   }
 
   return (
