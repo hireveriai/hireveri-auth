@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { pool } from "@/lib/db";
 import { cookies } from "next/headers";
 
+
 export async function POST(req: Request) {
   const { identityId, otp } = await req.json();
 
@@ -38,16 +39,16 @@ export async function POST(req: Request) {
   // ✅ FIX: cookies() is async in Next 14
   const cookieStore = await cookies();
 
-  cookieStore.set(
-    "hireveri_session",
-    session_id,
-    {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/"
-    }
-  );
+cookieStore.set("hireveri_session", session_id, {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax",
+  domain:
+    process.env.NODE_ENV === "production"
+      ? ".verihireai.work"
+      : undefined, // localhost safe
+  path: "/"
+});
 
-  return NextResponse.json({ success: true });
+return NextResponse.json({ success: true });
 }
