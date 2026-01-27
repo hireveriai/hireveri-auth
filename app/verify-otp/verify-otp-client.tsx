@@ -1,16 +1,15 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 const isProd = process.env.NODE_ENV === "production";
 
 const REDIRECT_BASE = isProd
-  ? "https://app.verihireai.work"
-  : "http://localhost:3001";
+  ? "https://www.verihireai.work" // change to app.verihireai.work later
+  : "http://localhost:3000";
 
 export default function VerifyOtpClient() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const identityId = searchParams.get("identityId");
 
@@ -18,8 +17,8 @@ export default function VerifyOtpClient() {
   const [loading, setLoading] = useState(false);
 
   async function verifyOtp() {
-    if (!identityId) {
-      alert("Missing identityId");
+    if (!identityId || otp.length < 4) {
+      alert("Invalid or incomplete OTP");
       return;
     }
 
@@ -39,7 +38,6 @@ export default function VerifyOtpClient() {
       return;
     }
 
-    // ✅ Redirect ONLY on client
     window.location.href = REDIRECT_BASE;
   }
 
