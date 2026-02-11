@@ -1,4 +1,87 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+
 export default function RecruiterOnboardingPage() {
+  const router = useRouter();
+
+  /* ---------------- Identity (from session) ---------------- */
+  const [email, setEmail] = useState<string>("");
+  const [emailLoading, setEmailLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadEmail() {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (!res.ok) {
+          throw new Error("Not authenticated");
+        }
+        const data = await res.json();
+        setEmail(data.email);
+      } catch {
+        // session missing / expired → go back to login
+        router.replace("/recruiter-access");
+      } finally {
+        setEmailLoading(false);
+      }
+    }
+
+    loadEmail();
+  }, [router]);
+
+  /* ---------------- Form State ---------------- */
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [recruiterRole, setRecruiterRole] = useState("");
+  const [industry, setIndustry] = useState("");
+  const [country, setCountry] = useState("");
+  const [companySize, setCompanySize] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  /* ---------------- Submit Handler ---------------- */
+  async function handleCreateWorkspace(e: React.FormEvent) {
+    e.preventDefault();
+
+    if (!email || !firstName || !lastName || !companyName) {
+      setError("Please fill all required fields.");
+      return;
+    }
+
+    setError(null);
+    setLoading(true);
+
+    // TODO: replace with real API call
+const res = await fetch("/api/onboarding/recruiter", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    firstName,
+    lastName,
+    phone,
+    companyName,
+    recruiterRole,
+    industry,
+    country,
+    companySize,
+  }),
+});
+
+if (!res.ok) {
+  const data = await res.json();
+  setError(data?.error || "Failed to create workspace");
+  setLoading(false);
+  return;
+}
+
+router.push("/recruiter/war-room");
+
+  }
+
+  /* ---------------- Render ---------------- */
   return (
     <main className="min-h-screen w-full bg-[radial-gradient(ellipse_at_top,_rgba(34,211,238,0.12),_transparent_60%)]">
       {/* Header */}
@@ -40,7 +123,8 @@ export default function RecruiterOnboardingPage() {
 
           {/* RIGHT PANEL */}
           <section>
-            <div
+            <form
+              onSubmit={handleCreateWorkspace}
               className="
                 w-full max-w-lg
                 min-h-[640px]
@@ -68,35 +152,42 @@ export default function RecruiterOnboardingPage() {
                     <label className="text-xs text-white/60">
                       First name <span className="text-cyan-400">*</span>
                     </label>
-                    <input className="input mt-1" />
+                    <input
+                      className="input mt-1"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                    />
                   </div>
 
                   <div>
                     <label className="text-xs text-white/60">
                       Last name <span className="text-cyan-400">*</span>
                     </label>
-                    <input className="input mt-1" />
+                    <input
+                      className="input mt-1"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                    />
                   </div>
                 </div>
 
+                {/* ✅ EMAIL FROM SESSION */}
                 <div className="mb-4">
                   <label className="text-xs text-white/60">Work email</label>
                   <input
                     className="input mt-1 opacity-60 cursor-not-allowed"
-                    value="work@email.com"
+                    value={emailLoading ? "Loading…" : email}
                     disabled
                   />
                 </div>
 
                 <div className="grid grid-cols-[90px_1fr] gap-3">
-                  <input
-                    className="input text-center"
-                    value="+1"
-                    disabled
-                  />
+                  <input className="input text-center" value="+91" disabled />
                   <input
                     className="input"
                     placeholder="Phone number"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
                   />
                 </div>
               </div>
@@ -111,34 +202,53 @@ export default function RecruiterOnboardingPage() {
                   <label className="text-xs text-white/60">
                     Company name <span className="text-cyan-400">*</span>
                   </label>
-                  <input className="input mt-1" />
+                  <input
+                    className="input mt-1"
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                  />
                 </div>
 
-                {/* Compact grid */}
                 <div className="grid grid-cols-2 gap-4">
-                  <select className="input">
-                    <option>Recruiter role</option>
+                  <select
+                    className="input"
+                    value={recruiterRole}
+                    onChange={(e) => setRecruiterRole(e.target.value)}
+                  >
+                    <option value="">Recruiter role</option>
                     <option>HR</option>
                     <option>Founder / CEO</option>
                     <option>Hiring Manager</option>
                   </select>
 
-                  <select className="input">
-                    <option>Industry</option>
+                  <select
+                    className="input"
+                    value={industry}
+                    onChange={(e) => setIndustry(e.target.value)}
+                  >
+                    <option value="">Industry</option>
                     <option>Finance</option>
                     <option>Manufacturing</option>
                     <option>Technology</option>
                   </select>
 
-                  <select className="input">
-                    <option>Country</option>
+                  <select
+                    className="input"
+                    value={country}
+                    onChange={(e) => setCountry(e.target.value)}
+                  >
+                    <option value="">Country</option>
                     <option>India</option>
                     <option>United States</option>
                     <option>United Kingdom</option>
                   </select>
 
-                  <select className="input">
-                    <option>Company size</option>
+                  <select
+                    className="input"
+                    value={companySize}
+                    onChange={(e) => setCompanySize(e.target.value)}
+                  >
+                    <option value="">Company size</option>
                     <option>1–10</option>
                     <option>11–50</option>
                     <option>51–200</option>
@@ -148,10 +258,18 @@ export default function RecruiterOnboardingPage() {
                 </div>
               </div>
 
-              <button className="w-full rounded-xl bg-cyan-500 py-3 text-black font-semibold hover:bg-cyan-400 transition">
-                Create Hiring Workspace
+              {error && (
+                <p className="text-sm text-red-400 mb-3">{error}</p>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading || emailLoading}
+                className="w-full rounded-xl bg-cyan-500 py-3 text-black font-semibold hover:bg-cyan-400 disabled:opacity-50 transition"
+              >
+                {loading ? "Creating Workspace..." : "Create Hiring Workspace"}
               </button>
-            </div>
+            </form>
           </section>
         </div>
       </div>
