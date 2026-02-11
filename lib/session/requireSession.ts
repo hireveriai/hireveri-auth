@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { pool } from "@/lib/db-admin";
+import { getPool } from "@/lib/db-admin";
 
 /**
  * Resolve authenticated session from hireveri_session cookie

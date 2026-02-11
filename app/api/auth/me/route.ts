@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { pool } from "@/lib/db-admin";
+import { getPool } from "@/lib/db-admin";
 
 export async function GET() {
   const cookieStore = await cookies();

@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { pool } from "@/lib/db-admin";
+import { getPool } from "@/lib/db-admin";
 import { requireSession } from "@/lib/session/requireSession";
 
 export async function submitCandidateOnboarding(formData: FormData) {

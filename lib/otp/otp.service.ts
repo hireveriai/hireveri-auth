@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { pool } from "@/lib/db-admin";
+import { getPool } from "@/lib/db-admin";
 import { sendOtpEmail } from "@/lib/email";
 
 const OTP_EXPIRY_MINUTES = 5;
