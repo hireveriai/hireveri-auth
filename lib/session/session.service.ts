@@ -1,4 +1,4 @@
-import { pool } from "@/lib/db";
+import { createServerClient } from "@/lib/db";
 
 const SESSION_TTL_HOURS = 24;
 
@@ -9,27 +9,32 @@ export async function createSession(params: {
 }) {
   const { userId, ipAddress, userAgent } = params;
 
+  const supabase = await createServerClient();
+
   const expiresAt = new Date(
     Date.now() + SESSION_TTL_HOURS * 60 * 60 * 1000
   );
 
-  const res = await pool.query(
-    `
-    INSERT INTO auth_sessions (
-      user_id,
-      expires_at,
-      ip_address,
-      user_agent,
-      is_active
-    )
-    VALUES ($1, $2, $3, $4, true)
-    RETURNING session_id
-    `,
-    [userId, expiresAt, ipAddress ?? null, userAgent ?? null]
-  );
+  const { data, error } = await supabase
+    .from("auth_sessions")
+    .insert([
+      {
+        user_id: userId,
+        expires_at: expiresAt.toISOString(),
+        ip_address: ipAddress ?? null,
+        user_agent: userAgent ?? null,
+        is_active: true,
+      },
+    ])
+    .select("session_id")
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
 
   return {
-    sessionId: res.rows[0].session_id,
-    expiresAt
+    sessionId: data.session_id,
+    expiresAt,
   };
 }
