@@ -30,6 +30,7 @@ export async function requestOTP(params: {
   }
 
   /* 1. Ensure identity exists */
+  const pool = getPool();
   const identityRes = await pool.query(
     `
     INSERT INTO identity_users (email, phone, intent)
@@ -91,7 +92,7 @@ export async function verifyOTP(params: {
   otp: string;
 }) {
   const { otpId, otp } = params;
-
+const pool = getPool();
   const res = await pool.query(
     `
     SELECT

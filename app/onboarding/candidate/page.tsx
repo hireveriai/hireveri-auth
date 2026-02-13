@@ -1,7 +1,11 @@
+export const dynamic = "force-dynamic";
+
 import CandidateOnboardingClient from "./CandidateOnboardingClient";
-import { pool } from "@/lib/db-admin";
+import { getPool } from "@/lib/db-admin";
 
 export default async function CandidateOnboardingPage() {
+  const pool = getPool();
+
   const { rows } = await pool.query(
     `select sp_get_practice_candidate_onboarding_pools() as data`
   );

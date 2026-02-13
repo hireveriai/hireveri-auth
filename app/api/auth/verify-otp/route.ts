@@ -15,6 +15,7 @@ export async function POST(req: Request) {
   const SESSION_TTL_SECONDS = 86400;
 
   /* 1️⃣ Verify OTP + issue session */
+  const pool = getPool();
   const sessionRes = await pool.query(
     `
     SELECT *

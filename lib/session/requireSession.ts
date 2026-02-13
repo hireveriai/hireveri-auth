@@ -17,7 +17,7 @@ export async function requireSession() {
   if (!sessionId) {
     throw new Error("Unauthenticated");
   }
-
+const pool = getPool();
   const { rows } = await pool.query(
     `
     select identity_id

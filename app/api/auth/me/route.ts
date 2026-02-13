@@ -10,16 +10,14 @@ export async function GET() {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const res = await pool.query(
-    `
-    SELECT iu.email
-    FROM auth_sessions s
-    JOIN identity_users iu ON iu.identity_id = s.identity_id
-    WHERE s.session_id = $1
-    `,
-    [sessionId]
-  );
+  const pool = getPool();
 
+const res = await pool.query(`
+  SELECT iu.email
+  FROM auth_sessions s
+  JOIN identity_users iu ON iu.user_id = s.user_id
+  WHERE s.session_id = $1
+`, [sessionId]);
   if (!res.rows.length) {
     return NextResponse.json({ error: "Session invalid" }, { status: 401 });
   }

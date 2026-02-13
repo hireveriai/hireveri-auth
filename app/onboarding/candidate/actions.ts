@@ -14,7 +14,8 @@ export async function submitCandidateOnboarding(formData: FormData) {
   const primary_role_id = formData.get("primary_role_id") as string;
   const experience_level_code = formData.get("experience_level_code") as string;
   const skill_ids = formData.getAll("primary_skill_ids") as string[];
-
+  
+  const pool = getPool();
   await pool.query(
     `
     select sp_complete_practice_candidate_onboarding(
