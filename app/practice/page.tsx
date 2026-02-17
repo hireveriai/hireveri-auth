@@ -22,7 +22,7 @@ export default function PracticeEntryPage() {
         </ul>
 
         <Link
-          href="/verify-otp?intent=candidate_practice"
+          href="/practice-access"
           className="block w-full text-center rounded-lg bg-indigo-600 py-2 text-sm font-medium hover:bg-indigo-500 transition"
         >
           Start Practice Interview

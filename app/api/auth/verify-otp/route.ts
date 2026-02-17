@@ -62,22 +62,31 @@ export async function POST(req: Request) {
 
   /* 🧑‍🎓 PRACTICE CANDIDATE */
   if (intent === "candidate_practice") {
-    const userRes = await pool.query(
-      `
-      SELECT user_id
-      FROM users
-      WHERE identity_id = $1
-        AND role = 'CANDIDATE'
-        AND is_active = true
-      `,
-      [identityId]
-    );
+  const userRes = await pool.query(
+    `
+    SELECT user_id
+    FROM users
+    WHERE email = $1
+      AND role = 'CANDIDATE'
+      AND is_active = true
+    `,
+    [email.toLowerCase()]
+  );
 
-    nextRoute =
-      userRes.rows.length > 0
-        ? "/practice/dashboard"
-        : "/onboarding/candidate";
+  if (userRes.rows.length === 0) {
+    // create candidate if first time
+    await pool.query(
+      `select sp_create_practice_candidate($1,$2)`,
+      [email.toLowerCase(), identityId]
+    );
   }
+
+  nextRoute =
+    userRes.rows.length > 0
+      ? "/practice/dashboard"
+      : "/onboarding/candidate";
+}
+
 
   /* 🧑‍💼 RECRUITER */
   else if (intent === "recruiter_login") {
