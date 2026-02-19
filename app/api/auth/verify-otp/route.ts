@@ -117,11 +117,15 @@ export async function POST(req: Request) {
   /* 4️⃣ Set session cookie */
   const cookieStore = await cookies();
   cookieStore.set("hireveri_session", session_id, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-  });
+  httpOnly: true,
+  sameSite: "lax",
+  secure: process.env.NODE_ENV === "production",
+  path: "/",
+  domain:
+    process.env.NODE_ENV === "production"
+      ? ".verihireai.work"
+      : undefined,
+});
 
   return NextResponse.json({
     success: true,
