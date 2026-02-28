@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getPool } from "@/lib/db-admin";
 import { cookies } from "next/headers";
 
+const candidateApp = process.env.CANDIDATE_APP_URL!; // ⭐ base platform URL
+
 export async function POST(req: Request) {
   const { identityId, otp, email } = await req.json();
 
@@ -62,31 +64,30 @@ export async function POST(req: Request) {
 
   /* 🧑‍🎓 PRACTICE CANDIDATE */
   if (intent === "candidate_practice") {
-  const userRes = await pool.query(
-    `
-    SELECT user_id
-    FROM users
-    WHERE email = $1
-      AND role = 'CANDIDATE'
-      AND is_active = true
-    `,
-    [email.toLowerCase()]
-  );
-
-  if (userRes.rows.length === 0) {
-    // create candidate if first time
-    await pool.query(
-      `select sp_create_practice_candidate($1,$2)`,
-      [email.toLowerCase(), identityId]
+    const userRes = await pool.query(
+      `
+      SELECT user_id
+      FROM users
+      WHERE email = $1
+        AND role = 'CANDIDATE'
+        AND is_active = true
+      `,
+      [email.toLowerCase()]
     );
+
+    if (userRes.rows.length === 0) {
+      // create candidate if first time
+      await pool.query(
+        `select sp_create_practice_candidate($1,$2)`,
+        [email.toLowerCase(), identityId]
+      );
+    }
+
+    nextRoute =
+      userRes.rows.length > 0
+        ? `${candidateApp}/candidate/dashboard`
+        : `${candidateApp}/onboarding/candidate`;
   }
-
-  nextRoute =
-    userRes.rows.length > 0
-      ? "/practice/dashboard"
-      : "/onboarding/candidate";
-}
-
 
   /* 🧑‍💼 RECRUITER */
   else if (intent === "recruiter_login") {
@@ -103,8 +104,8 @@ export async function POST(req: Request) {
 
     nextRoute =
       userRes.rows.length > 0
-        ? "/recruiter/war-room"
-        : "/onboarding/recruiter";
+        ? `${candidateApp}/recruiter/war-room`
+        : `${candidateApp}/onboarding/recruiter`;
   }
 
   else {
@@ -116,25 +117,20 @@ export async function POST(req: Request) {
 
   /* 4️⃣ Set session cookie */
   const response = NextResponse.json({
-  success: true,
-  nextRoute,
-});
-
-response.cookies.set("hireveri_session", session_id, {
-  httpOnly: true,
-  sameSite: "lax",
-  secure: process.env.NODE_ENV === "production",
-  path: "/",
-  domain:
-    process.env.NODE_ENV === "production"
-      ? ".verihireai.work"
-      : undefined,
-});
-
-return response;
-
-  return NextResponse.json({
     success: true,
     nextRoute,
   });
+
+  response.cookies.set("hireveri_session", session_id, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    domain:
+      process.env.NODE_ENV === "production"
+        ? ".verihireai.work" // ⭐ allows subdomain sharing
+        : undefined,
+  });
+
+  return response;
 }
