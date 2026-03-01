@@ -85,7 +85,7 @@ export async function POST(req: Request) {
 
     nextRoute =
       userRes.rows.length > 0
-        ? `${candidateApp}/candidate/dashboard`
+        ? `${candidateApp}/dashboard`
         : `${candidateApp}/onboarding/candidate`;
   }
 
