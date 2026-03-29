@@ -61,6 +61,11 @@ export default function PracticeAccessPage() {
       return;
     }
 
+    if (!data?.identityId) {
+      alert("Identity could not be created. Please try again.");
+      return;
+    }
+
     router.push(
       `/verify-otp?identityId=${data.identityId}&email=${encodeURIComponent(
         email
@@ -77,7 +82,7 @@ export default function PracticeAccessPage() {
 
         <h1 className="text-center text-2xl font-semibold">{UI.title}</h1>
 
-        <p className="mt-1 mb-6 text-center text-sm text-white/60">
+        <p className="mb-6 mt-1 text-center text-sm text-white/60">
           {UI.subtitle}
         </p>
 
