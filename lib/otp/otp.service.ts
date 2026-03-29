@@ -1,9 +1,7 @@
-import crypto from "crypto";
 import { getPool } from "@/lib/db-admin";
 import { sendOtpEmail } from "@/lib/email";
 
 const OTP_EXPIRY_MINUTES = 5;
-const MAX_ATTEMPTS = 5;
 
 /* ------------------ helpers ------------------ */
 
@@ -11,8 +9,20 @@ function generateOtp(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-function hashOtp(otp: string): string {
-  return crypto.createHash("sha256").update(otp).digest("hex");
+function normalizeIdentityIntent(intent: string) {
+  if (intent === "recruiter" || intent === "recruiter_login") {
+    return "recruiter_login";
+  }
+
+  return "candidate_practice";
+}
+
+function normalizeOtpIntent(intent: string) {
+  if (intent === "recruiter" || intent === "recruiter_login") {
+    return "recruiter";
+  }
+
+  return "candidate";
 }
 
 /* ------------------ REQUEST OTP ------------------ */
@@ -21,7 +31,11 @@ export async function requestOTP(params: {
   email?: string;
   phone?: string;
   purpose: "LOGIN" | "SIGNUP" | "RESET";
-  intent: "recruiter" | "candidate";
+  intent:
+    | "recruiter"
+    | "candidate"
+    | "recruiter_login"
+    | "candidate_practice";
 }) {
   const { email, phone, purpose, intent } = params;
 
@@ -39,14 +53,13 @@ export async function requestOTP(params: {
     DO UPDATE SET intent = EXCLUDED.intent
     RETURNING identity_id
     `,
-    [email ?? null, phone ?? null, intent]
+    [email ?? null, phone ?? null, normalizeIdentityIntent(intent)]
   );
 
   const identityId = identityRes.rows[0].identity_id;
 
   /* 2. Generate OTP */
   const otp = generateOtp();
-  const otpHash = hashOtp(otp);
 
   // DEV fallback (always keep this)
   if (process.env.NODE_ENV !== "production") {
@@ -70,12 +83,13 @@ export async function requestOTP(params: {
       purpose,
       expires_at,
       identity_id,
+      intent,
       used_at
     )
-    VALUES ($1, $2, $3, $4, NULL)
+    VALUES ($1, $2, $3, $4, $5, NULL)
     RETURNING otp_id
     `,
-    [otpHash, purpose, expiresAt, identityId]
+    [otp, purpose, expiresAt, identityId, normalizeOtpIntent(intent)]
   );
 
   return {
@@ -121,9 +135,7 @@ const pool = getPool();
     throw new Error("OTP_EXPIRED");
   }
 
-  const incomingHash = hashOtp(otp);
-
-  if (incomingHash !== record.otp_code) {
+  if (otp !== record.otp_code) {
     throw new Error("OTP_INVALID");
   }
 

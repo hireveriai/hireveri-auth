@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 type CandidateIntent = "candidate_practice";
@@ -17,16 +17,14 @@ export default function PracticeAccessPage() {
   const router = useRouter();
   const intent: CandidateIntent = "candidate_practice";
 
-  const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  /* 🔒 Restore email if user comes back */
-  useEffect(() => {
-    const savedEmail = sessionStorage.getItem("hireveri_candidate_email");
-    if (savedEmail) {
-      setEmail(savedEmail);
+  const [email, setEmail] = useState(() => {
+    if (typeof window === "undefined") {
+      return "";
     }
-  }, []);
+
+    return sessionStorage.getItem("hireveri_candidate_email") ?? "";
+  });
+  const [loading, setLoading] = useState(false);
 
   async function sendOtp() {
     if (!email.trim()) {
@@ -35,8 +33,6 @@ export default function PracticeAccessPage() {
     }
 
     setLoading(true);
-
-    // persist email for this auth attempt
     sessionStorage.setItem("hireveri_candidate_email", email);
 
     const res = await fetch("/api/auth/request-otp", {
@@ -48,7 +44,7 @@ export default function PracticeAccessPage() {
       }),
     });
 
-    let data: any = null;
+    let data: { error?: string; identityId?: string } | null = null;
 
     try {
       data = await res.json();
@@ -68,66 +64,42 @@ export default function PracticeAccessPage() {
     router.push(
       `/verify-otp?identityId=${data.identityId}&email=${encodeURIComponent(
         email
-      )}`
+      )}&intent=${intent}`
     );
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0B0F14] text-white">
-      <div className="w-[420px] bg-[#0F141B]/90 border border-cyan-400/20 rounded-2xl p-8 backdrop-blur">
-
-        <div className="text-xs text-cyan-400 mb-4 text-center uppercase tracking-wide">
+      <div className="w-[420px] rounded-2xl border border-cyan-400/20 bg-[#0F141B]/90 p-8 backdrop-blur">
+        <div className="mb-4 text-center text-xs uppercase tracking-wide text-cyan-400">
           {UI.badge}
         </div>
 
-        <h1 className="text-2xl font-semibold text-center">
-          {UI.title}
-        </h1>
+        <h1 className="text-center text-2xl font-semibold">{UI.title}</h1>
 
-        <p className="text-sm text-white/60 text-center mt-1 mb-6">
+        <p className="mt-1 mb-6 text-center text-sm text-white/60">
           {UI.subtitle}
         </p>
 
         <input
           type="email"
           placeholder={UI.emailPlaceholder}
-          className="w-full p-3 mb-2 rounded bg-black border border-white/10 focus:outline-none focus:border-cyan-400/40"
+          className="mb-2 w-full rounded border border-white/10 bg-black p-3 focus:border-cyan-400/40 focus:outline-none"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
 
-        <p className="text-xs text-white/50 mb-4">
-          We’ll send a 6-digit one-time verification code
+        <p className="mb-4 text-xs text-white/50">
+          We&apos;ll send a 6-digit one-time verification code
         </p>
 
         <button
           onClick={sendOtp}
           disabled={loading}
-          className="w-full bg-cyan-500 hover:bg-cyan-400 text-black py-3 rounded-xl font-semibold disabled:opacity-50 transition"
+          className="w-full rounded-xl bg-cyan-500 py-3 font-semibold text-black transition hover:bg-cyan-400 disabled:opacity-50"
         >
           {loading ? "Sending OTP..." : UI.cta}
         </button>
-
-        <div className="mt-6 flex items-center justify-center gap-4 text-[11px] text-white/40">
-          <div className="flex items-center gap-1">
-            <span>🔐</span>
-            <span>Secure identity verification</span>
-          </div>
-
-          <span className="opacity-30">•</span>
-
-          <div className="flex items-center gap-1">
-            <span>🧠</span>
-            <span>AI-guided practice</span>
-          </div>
-
-          <span className="opacity-30">•</span>
-
-          <div className="flex items-center gap-1">
-            <span>🎯</span>
-            <span>Skill-focused improvement</span>
-          </div>
-        </div>
       </div>
     </div>
   );

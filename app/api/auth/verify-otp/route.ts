@@ -14,106 +14,46 @@ export async function POST(req: Request) {
     }
 
     const normalizedEmail = String(email).toLowerCase().trim();
-    const SESSION_TTL_SECONDS = 86400;
+    const userAgent = req.headers.get("user-agent");
+    const ipAddress =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null;
 
     const pool = getPool();
-    const sessionRes = await pool.query(
+    const verifyRes = await pool.query(
       `
-      SELECT *
-      FROM sp_verify_otp_and_issue_session(
+      SELECT public.sp_verify_otp_and_issue_session(
         $1::uuid,
         $2::text,
-        'LOGIN',
-        $3::integer
+        $3::text,
+        $4::text,
+        $5::text
       )
+      AS result
       `,
-      [identityId, otp, SESSION_TTL_SECONDS]
+      [identityId, normalizedEmail, otp, ipAddress, userAgent]
     );
 
-    if (!sessionRes.rows.length) {
+    const result = verifyRes.rows[0]?.result;
+
+    if (!result?.success || !result?.sessionId) {
       return NextResponse.json(
         { error: "Invalid or expired OTP" },
         { status: 401 }
       );
     }
 
-    const { session_id } = sessionRes.rows[0];
-
-    const identityRes = await pool.query(
-      `
-      SELECT intent
-      FROM identity_users
-      WHERE identity_id = $1
-      `,
-      [identityId]
-    );
-
-    const intent = identityRes.rows[0]?.intent;
-
-    if (!intent) {
-      return NextResponse.json(
-        { error: "Auth intent missing" },
-        { status: 400 }
-      );
-    }
-
-    let nextRoute: string;
-
-    if (intent === "candidate_practice") {
-      const userRes = await pool.query(
-        `
-        SELECT user_id
-        FROM users
-        WHERE email = $1
-          AND role = 'CANDIDATE'
-          AND is_active = true
-        `,
-        [normalizedEmail]
-      );
-
-      if (userRes.rows.length === 0) {
-        await pool.query(`select sp_create_practice_candidate($1,$2)`, [
-          normalizedEmail,
-          identityId,
-        ]);
-      }
-
-      nextRoute =
-        userRes.rows.length > 0
-          ? `${candidateApp}/dashboard`
-          : `${candidateApp}/onboarding/candidate`;
-    } else if (intent === "recruiter_login") {
-      const userRes = await pool.query(
-        `
-        SELECT user_id
-        FROM users
-        WHERE role = 'RECRUITER'
-          AND is_active = true
-          AND (
-            identity_id = $1
-            OR lower(email) = $2
-          )
-        `,
-        [identityId, normalizedEmail]
-      );
-
-      nextRoute =
-        userRes.rows.length > 0
-          ? recruiterApp
-          : `${candidateApp}/onboarding/recruiter`;
-    } else {
-      return NextResponse.json(
-        { error: "Invalid auth intent" },
-        { status: 400 }
-      );
-    }
+    const nextRoute =
+      result.redirectUrl ||
+      (result.intent === "recruiter_login"
+        ? recruiterApp
+        : `${candidateApp}/dashboard`);
 
     const response = NextResponse.json({
       success: true,
       nextRoute,
     });
 
-    response.cookies.set("hireveri_session", session_id, {
+    response.cookies.set("hireveri_session", result.sessionId, {
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
