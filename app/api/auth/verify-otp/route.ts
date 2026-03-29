@@ -87,11 +87,14 @@ export async function POST(req: Request) {
         `
         SELECT user_id
         FROM users
-        WHERE identity_id = $1
-          AND role = 'RECRUITER'
+        WHERE role = 'RECRUITER'
           AND is_active = true
+          AND (
+            identity_id = $1
+            OR lower(email) = $2
+          )
         `,
-        [identityId]
+        [identityId, normalizedEmail]
       );
 
       nextRoute =
