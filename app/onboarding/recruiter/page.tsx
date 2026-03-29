@@ -3,6 +3,10 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+const recruiterAppUrl =
+  process.env.NEXT_PUBLIC_RECRUITER_APP_URL ||
+  "https://recruiter.verihireai.work";
+
 export default function RecruiterOnboardingPage() {
   const router = useRouter();
 
@@ -55,29 +59,29 @@ export default function RecruiterOnboardingPage() {
     setLoading(true);
 
     // TODO: replace with real API call
-const res = await fetch("/api/onboarding/recruiter", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    firstName,
-    lastName,
-    phone,
-    companyName,
-    recruiterRole,
-    industry,
-    country,
-    companySize,
-  }),
-});
+    const res = await fetch("/api/onboarding/recruiter", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        firstName,
+        lastName,
+        phone,
+        companyName,
+        recruiterRole,
+        industry,
+        country,
+        companySize,
+      }),
+    });
 
-if (!res.ok) {
-  const data = await res.json();
-  setError(data?.error || "Failed to create workspace");
-  setLoading(false);
-  return;
-}
+    if (!res.ok) {
+      const data = await res.json();
+      setError(data?.error || "Failed to create workspace");
+      setLoading(false);
+      return;
+    }
 
-router.push("https://recruiter.hireveri.work");
+    window.location.href = recruiterAppUrl;
 
   }
 

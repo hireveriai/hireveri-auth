@@ -1,22 +1,19 @@
 import { NextResponse } from "next/server";
 import { getPool } from "@/lib/db-admin";
-import { cookies } from "next/headers";
 
-const candidateApp = process.env.CANDIDATE_APP_URL!; // ⭐ base platform URL
+const candidateApp = process.env.CANDIDATE_APP_URL!;
+const recruiterApp =
+  process.env.RECRUITER_APP_URL || "https://recruiter.verihireai.work";
 
 export async function POST(req: Request) {
   const { identityId, otp, email } = await req.json();
 
   if (!identityId || !otp || !email) {
-    return NextResponse.json(
-      { error: "Invalid request" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
   const SESSION_TTL_SECONDS = 86400;
 
-  /* 1️⃣ Verify OTP + issue session */
   const pool = getPool();
   const sessionRes = await pool.query(
     `
@@ -40,7 +37,6 @@ export async function POST(req: Request) {
 
   const { session_id } = sessionRes.rows[0];
 
-  /* 2️⃣ Resolve intent (DB is source of truth) */
   const identityRes = await pool.query(
     `
     SELECT intent
@@ -53,16 +49,11 @@ export async function POST(req: Request) {
   const intent = identityRes.rows[0]?.intent;
 
   if (!intent) {
-    return NextResponse.json(
-      { error: "Auth intent missing" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Auth intent missing" }, { status: 400 });
   }
 
-  /* 3️⃣ Resolve next route */
   let nextRoute: string;
 
-  /* 🧑‍🎓 PRACTICE CANDIDATE */
   if (intent === "candidate_practice") {
     const userRes = await pool.query(
       `
@@ -76,21 +67,17 @@ export async function POST(req: Request) {
     );
 
     if (userRes.rows.length === 0) {
-      // create candidate if first time
-      await pool.query(
-        `select sp_create_practice_candidate($1,$2)`,
-        [email.toLowerCase(), identityId]
-      );
+      await pool.query(`select sp_create_practice_candidate($1,$2)`, [
+        email.toLowerCase(),
+        identityId,
+      ]);
     }
 
     nextRoute =
       userRes.rows.length > 0
         ? `${candidateApp}/dashboard`
         : `${candidateApp}/onboarding/candidate`;
-  }
-
-  /* 🧑‍💼 RECRUITER */
-  else if (intent === "recruiter_login") {
+  } else if (intent === "recruiter_login") {
     const userRes = await pool.query(
       `
       SELECT user_id
@@ -104,18 +91,15 @@ export async function POST(req: Request) {
 
     nextRoute =
       userRes.rows.length > 0
-        ? `${candidateApp}/recruiter/war-room`
+        ? recruiterApp
         : `${candidateApp}/onboarding/recruiter`;
-  }
-
-  else {
+  } else {
     return NextResponse.json(
       { error: "Invalid auth intent" },
       { status: 400 }
     );
   }
 
-  /* 4️⃣ Set session cookie */
   const response = NextResponse.json({
     success: true,
     nextRoute,
@@ -126,10 +110,7 @@ export async function POST(req: Request) {
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    domain:
-      process.env.NODE_ENV === "production"
-        ? ".verihireai.work" // ⭐ allows subdomain sharing
-        : undefined,
+    domain: process.env.NODE_ENV === "production" ? ".verihireai.work" : undefined,
   });
 
   return response;
