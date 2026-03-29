@@ -19,6 +19,46 @@ export async function POST(req: Request) {
       req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null;
 
     const pool = getPool();
+    const otpRes = await pool.query(
+      `
+      SELECT otp_id
+      FROM public.user_otps
+      WHERE identity_id = $1::uuid
+        AND otp_code = $2::text
+        AND used_at IS NULL
+        AND (expires_at IS NULL OR expires_at > now())
+      ORDER BY expires_at DESC NULLS LAST, otp_id DESC
+      LIMIT 1
+      `,
+      [identityId, otp]
+    );
+
+    if (!otpRes.rows.length) {
+      return NextResponse.json(
+        { error: "Invalid or expired OTP" },
+        { status: 401 }
+      );
+    }
+
+    await pool.query(
+      `
+      UPDATE public.auth_sessions
+      SET is_active = false
+      WHERE identity_id = $1::uuid
+        AND is_active = true
+        AND (
+          expires_at <= now()
+          OR auth_intent_id = (
+            SELECT auth_intent_id
+            FROM public.auth_intent_pool
+            WHERE code = 'recruiter_login'
+            LIMIT 1
+          )
+        )
+      `,
+      [identityId]
+    );
+
     const verifyRes = await pool.query(
       `
       SELECT public.sp_verify_otp_and_issue_session(
