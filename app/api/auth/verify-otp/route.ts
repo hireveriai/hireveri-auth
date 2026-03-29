@@ -82,11 +82,63 @@ export async function POST(req: Request) {
       );
     }
 
-    const nextRoute =
-      result.redirectUrl ||
-      (result.intent === "recruiter_login"
+    let nextRoute = result.redirectUrl;
+
+    if (result.intent === "recruiter_login") {
+      const recruiterRes = await pool.query(
+        `
+        SELECT user_id
+        FROM public.users
+        WHERE role = 'RECRUITER'
+          AND is_active = true
+          AND (
+            identity_id = $1::uuid
+            OR lower(email) = $2::text
+          )
+        LIMIT 1
+        `,
+        [identityId, normalizedEmail]
+      );
+
+      nextRoute = recruiterRes.rows.length
         ? recruiterApp
-        : `${candidateApp}/dashboard`);
+        : `${candidateApp}/onboarding/recruiter`;
+    } else if (result.intent === "candidate_practice") {
+      const candidateRes = await pool.query(
+        `
+        SELECT user_id
+        FROM public.users
+        WHERE role = 'CANDIDATE'
+          AND is_active = true
+          AND (
+            identity_id = $1::uuid
+            OR lower(email) = $2::text
+          )
+        LIMIT 1
+        `,
+        [identityId, normalizedEmail]
+      );
+
+      if (!candidateRes.rows.length) {
+        await pool.query(
+          `
+          SELECT *
+          FROM public.sp_create_practice_candidate(
+            $1::uuid,
+            $2::text,
+            NULL::text
+          )
+          `,
+          [identityId, normalizedEmail]
+        );
+
+        nextRoute = `${candidateApp}/onboarding/candidate`;
+      } else {
+        nextRoute = `${candidateApp}/dashboard`;
+      }
+    } else if (!nextRoute) {
+      nextRoute = `${candidateApp}/dashboard`;
+    }
 
     const response = NextResponse.json({
       success: true,
