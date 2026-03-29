@@ -77,7 +77,7 @@ if (!res.ok) {
   return;
 }
 
-router.push("/recruiter/war-room");
+router.push("https://recruiter.hireveri.work");
 
   }
 
