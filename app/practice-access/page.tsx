@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 type CandidateIntent = "candidate_practice";
@@ -25,6 +25,10 @@ export default function PracticeAccessPage() {
     return sessionStorage.getItem("hireveri_candidate_email") ?? "";
   });
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    document.title = "Practice Candidate Login | HireVeri";
+  }, []);
 
   async function sendOtp() {
     if (!email.trim()) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 type RecruiterIntent = "recruiter_login";
@@ -25,6 +25,10 @@ export default function RecruiterAccessPage() {
     return sessionStorage.getItem("hireveri_recruiter_email") ?? "";
   });
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    document.title = "Recruiter Login | HireVeri";
+  }, []);
 
   async function sendOtp() {
     if (!email.trim()) {
