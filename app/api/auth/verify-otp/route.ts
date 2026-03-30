@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { getPool } from "@/lib/db-admin";
 
+const authApp = process.env.AUTH_APP_URL || "https://auth.verihireai.work";
 const candidateApp = process.env.CANDIDATE_APP_URL!;
+const practiceCandidateApp =
+  process.env.PRACTICE_CANDIDATE_APP_URL || candidateApp;
 const recruiterApp =
   process.env.RECRUITER_APP_URL || "https://recruiter.verihireai.work";
 
@@ -99,7 +102,7 @@ export async function POST(req: Request) {
 
       nextRoute = recruiterRes.rows.length
         ? recruiterApp
-        : `${candidateApp}/onboarding/recruiter`;
+        : `${authApp}/onboarding/recruiter`;
     } else if (result.intent === "candidate_practice") {
       const candidateRes = await pool.query(
         `
@@ -129,12 +132,12 @@ export async function POST(req: Request) {
           [identityId, normalizedEmail]
         );
 
-        nextRoute = `${candidateApp}/onboarding/candidate`;
+        nextRoute = `${authApp}/onboarding/candidate`;
       } else {
-        nextRoute = `${candidateApp}/dashboard`;
+        nextRoute = practiceCandidateApp;
       }
     } else if (!nextRoute) {
-      nextRoute = `${candidateApp}/dashboard`;
+      nextRoute = practiceCandidateApp;
     }
 
     const response = NextResponse.json({
