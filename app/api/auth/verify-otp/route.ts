@@ -91,13 +91,10 @@ export async function POST(req: Request) {
         FROM public.users
         WHERE role = 'RECRUITER'
           AND is_active = true
-          AND (
-            identity_id = $1::uuid
-            OR lower(email) = $2::text
-          )
+          AND lower(email) = $1::text
         LIMIT 1
         `,
-        [identityId, normalizedEmail]
+        [normalizedEmail]
       );
 
       nextRoute = recruiterRes.rows.length

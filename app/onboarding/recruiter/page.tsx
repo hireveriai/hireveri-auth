@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 const recruiterAppUrl =
   process.env.NEXT_PUBLIC_RECRUITER_APP_URL ||
-  "https://recruiter.verihireai.work";
+  "https://auth.verihireai.work/onboarding/recruiter";
 
 export default function RecruiterOnboardingPage() {
   const router = useRouter();
