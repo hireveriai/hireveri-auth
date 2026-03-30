@@ -7,6 +7,32 @@ const practiceCandidateApp =
   process.env.PRACTICE_CANDIDATE_APP_URL || candidateApp;
 const recruiterApp =
   process.env.RECRUITER_APP_URL || "https://recruiter.verihireai.work";
+const recruiterAppTemplate = process.env.RECRUITER_APP_URL_TEMPLATE;
+
+function buildRecruiterAppUrl(params: {
+  organizationId?: string | null;
+  userId?: string | null;
+}) {
+  const { organizationId, userId } = params;
+
+  if (recruiterAppTemplate) {
+    return recruiterAppTemplate
+      .replaceAll("{organizationId}", organizationId ?? "")
+      .replaceAll("{userId}", userId ?? "");
+  }
+
+  const url = new URL(recruiterApp);
+
+  if (organizationId) {
+    url.searchParams.set("organizationId", organizationId);
+  }
+
+  if (userId) {
+    url.searchParams.set("userId", userId);
+  }
+
+  return url.toString();
+}
 
 export async function POST(req: Request) {
   try {
@@ -90,7 +116,7 @@ export async function POST(req: Request) {
     if (result.intent === "recruiter_login") {
       const recruiterRes = await pool.query(
         `
-        SELECT user_id
+        SELECT user_id, organization_id
         FROM public.users
         WHERE role = 'RECRUITER'
           AND is_active = true
@@ -101,7 +127,10 @@ export async function POST(req: Request) {
       );
 
       nextRoute = recruiterRes.rows.length
-        ? recruiterApp
+        ? buildRecruiterAppUrl({
+            organizationId: recruiterRes.rows[0].organization_id,
+            userId: recruiterRes.rows[0].user_id,
+          })
         : `${authApp}/onboarding/recruiter`;
     } else if (result.intent === "candidate_practice") {
       const candidateRes = await pool.query(

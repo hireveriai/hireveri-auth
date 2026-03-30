@@ -2,6 +2,35 @@ import { NextResponse } from "next/server";
 import { getPool } from "@/lib/db-admin";
 import { requireSession } from "@/lib/session/requireSession";
 
+const recruiterApp =
+  process.env.RECRUITER_APP_URL || "https://recruiter.verihireai.work";
+const recruiterAppTemplate = process.env.RECRUITER_APP_URL_TEMPLATE;
+
+function buildRecruiterAppUrl(params: {
+  organizationId?: string | null;
+  userId?: string | null;
+}) {
+  const { organizationId, userId } = params;
+
+  if (recruiterAppTemplate) {
+    return recruiterAppTemplate
+      .replaceAll("{organizationId}", organizationId ?? "")
+      .replaceAll("{userId}", userId ?? "");
+  }
+
+  const url = new URL(recruiterApp);
+
+  if (organizationId) {
+    url.searchParams.set("organizationId", organizationId);
+  }
+
+  if (userId) {
+    url.searchParams.set("userId", userId);
+  }
+
+  return url.toString();
+}
+
 export async function POST(req: Request) {
   try {
     const { identity_id } = await requireSession();
@@ -64,9 +93,15 @@ export async function POST(req: Request) {
     );
 
 
+    const result = res.rows[0] ?? null;
+
     return NextResponse.json({
       success: true,
-      result: res.rows[0] ?? null,
+      result,
+      nextRoute: buildRecruiterAppUrl({
+        organizationId: result?.organization_id,
+        userId: result?.user_id,
+      }),
     });
   } catch (err) {
     const message =

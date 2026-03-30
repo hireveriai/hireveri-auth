@@ -6,6 +6,33 @@ import { useRouter } from "next/navigation";
 const recruiterAppUrl =
   process.env.NEXT_PUBLIC_RECRUITER_APP_URL ||
   "https://recruiter.verihireai.work";
+const recruiterAppUrlTemplate =
+  process.env.NEXT_PUBLIC_RECRUITER_APP_URL_TEMPLATE;
+
+function buildRecruiterAppUrl(params: {
+  organizationId?: string | null;
+  userId?: string | null;
+}) {
+  const { organizationId, userId } = params;
+
+  if (recruiterAppUrlTemplate) {
+    return recruiterAppUrlTemplate
+      .replaceAll("{organizationId}", organizationId ?? "")
+      .replaceAll("{userId}", userId ?? "");
+  }
+
+  const url = new URL(recruiterAppUrl);
+
+  if (organizationId) {
+    url.searchParams.set("organizationId", organizationId);
+  }
+
+  if (userId) {
+    url.searchParams.set("userId", userId);
+  }
+
+  return url.toString();
+}
 
 export default function RecruiterOnboardingPage() {
   const router = useRouter();
@@ -74,14 +101,20 @@ export default function RecruiterOnboardingPage() {
       }),
     });
 
+    const data = await res.json();
+
     if (!res.ok) {
-      const data = await res.json();
       setError(data?.error || "Failed to create workspace");
       setLoading(false);
       return;
     }
 
-    window.location.href = recruiterAppUrl;
+    window.location.href =
+      data?.nextRoute ||
+      buildRecruiterAppUrl({
+        organizationId: data?.result?.organization_id,
+        userId: data?.result?.user_id,
+      });
 
   }
 
