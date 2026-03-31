@@ -1,5 +1,7 @@
 import nodemailer from "nodemailer";
 
+const defaultFrom = "HireVeri <no-reply@mil.hireveri.com>";
+
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: Number(process.env.SMTP_PORT),
@@ -15,7 +17,7 @@ export async function sendOtpEmail(to: string, otp: string) {
   if (!process.env.SMTP_HOST) return;
 
   await transporter.sendMail({
-    from: process.env.SMTP_FROM,
+    from: process.env.SMTP_FROM || defaultFrom,
     to,
     subject: "Your HireVeri OTP",
     text: `Your HireVeri OTP is ${otp}. It is valid for 5 minutes.`,
