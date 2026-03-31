@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 
-const defaultFrom = "HireVeri <no-reply@mil.hireveri.com>";
+const defaultFrom = "VeriHire <no-reply@mil.VeriHire.com>";
 const resendApiUrl = "https://api.resend.com/emails";
 
 const transporter = nodemailer.createTransport({
@@ -20,8 +20,8 @@ async function sendViaResend(to: string, otp: string) {
     return false;
   }
 
-  const fromEmail = process.env.RESEND_FROM_EMAIL || "no-reply@mail.hireveri.com";
-  const fromName = process.env.RESEND_FROM_NAME || "HireVeri";
+  const fromEmail = process.env.RESEND_FROM_EMAIL || "no-reply@mail.VeriHire.com";
+  const fromName = process.env.RESEND_FROM_NAME || "VeriHire";
   const from = `${fromName} <${fromEmail}>`;
 
   const res = await fetch(resendApiUrl, {
@@ -33,11 +33,11 @@ async function sendViaResend(to: string, otp: string) {
     body: JSON.stringify({
       from,
       to: [to],
-      subject: "Your HireVeri OTP",
-      text: `Your HireVeri OTP is ${otp}. It is valid for 5 minutes.`,
+      subject: "Your VeriHire OTP",
+      text: `Your VeriHire OTP is ${otp}. It is valid for 5 minutes.`,
       html: `
         <div style="font-family: Arial, sans-serif">
-          <h2>HireVeri Login</h2>
+          <h2>VeriHire Login</h2>
           <p>Your OTP is:</p>
           <h1 style="letter-spacing:4px">${otp}</h1>
           <p>This code is valid for 5 minutes.</p>
@@ -67,11 +67,11 @@ export async function sendOtpEmail(to: string, otp: string) {
   await transporter.sendMail({
     from: process.env.SMTP_FROM || defaultFrom,
     to,
-    subject: "Your HireVeri OTP",
-    text: `Your HireVeri OTP is ${otp}. It is valid for 5 minutes.`,
+    subject: "Your VeriHire OTP",
+    text: `Your VeriHire OTP is ${otp}. It is valid for 5 minutes.`,
     html: `
       <div style="font-family: Arial, sans-serif">
-        <h2>HireVeri Login</h2>
+        <h2>VeriHire Login</h2>
         <p>Your OTP is:</p>
         <h1 style="letter-spacing:4px">${otp}</h1>
         <p>This code is valid for 5 minutes.</p>
