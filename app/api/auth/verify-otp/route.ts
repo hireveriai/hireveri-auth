@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getPool } from "@/lib/db-admin";
 
-const authApp = process.env.AUTH_APP_URL || "https://auth.verihireai.work";
+const authApp = process.env.AUTH_APP_URL || "https://auth.hireveri.com";
 const candidateApp = process.env.CANDIDATE_APP_URL!;
 const practiceCandidateApp =
   process.env.PRACTICE_CANDIDATE_APP_URL || candidateApp;

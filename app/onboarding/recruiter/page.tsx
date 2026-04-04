@@ -8,6 +8,8 @@ const recruiterAppUrl =
   "https://recruiter.verihireai.work";
 const recruiterAppUrlTemplate =
   process.env.NEXT_PUBLIC_RECRUITER_APP_URL_TEMPLATE;
+const authAppUrl =
+  process.env.NEXT_PUBLIC_AUTH_APP_URL || "https://auth.hireveri.com";
 
 function buildRecruiterAppUrl(params: {
   organizationId?: string | null;
@@ -52,7 +54,7 @@ export default function RecruiterOnboardingPage() {
         setEmail(data.email);
       } catch {
         // session missing / expired → go back to login
-        router.replace("/recruiter-access");
+        window.location.href = `${authAppUrl}/recruiter-access`;
       } finally {
         setEmailLoading(false);
       }
