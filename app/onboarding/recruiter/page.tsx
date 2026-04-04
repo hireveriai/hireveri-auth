@@ -9,7 +9,7 @@ const recruiterAppUrl =
 const recruiterAppUrlTemplate =
   process.env.NEXT_PUBLIC_RECRUITER_APP_URL_TEMPLATE;
 const authAppUrl =
-  process.env.NEXT_PUBLIC_AUTH_APP_URL || "https://auth.hireveri.com";
+  process.env.NEXT_PUBLIC_AUTH_APP_URL || "https://www.auth.hireveri.com";
 
 function buildRecruiterAppUrl(params: {
   organizationId?: string | null;
