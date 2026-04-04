@@ -11,6 +11,7 @@ const practiceCandidateApp =
 const recruiterApp =
   process.env.RECRUITER_APP_URL || "https://recruiter.verihireai.work";
 const recruiterAppTemplate = process.env.RECRUITER_APP_URL_TEMPLATE;
+const sessionCookieDomain = process.env.SESSION_COOKIE_DOMAIN;
 
 function buildRecruiterAppUrl(params: {
   organizationId?: string | null;
@@ -186,8 +187,7 @@ export async function POST(req: Request) {
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
       path: "/",
-      domain:
-        process.env.NODE_ENV === "production" ? ".verihireai.work" : undefined,
+      domain: process.env.NODE_ENV === "production" ? sessionCookieDomain : undefined,
     });
 
     return response;
