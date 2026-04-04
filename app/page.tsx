@@ -1,7 +1,10 @@
 import { redirect } from "next/navigation";
-
-const authAppUrl = process.env.AUTH_APP_URL || "https://www.auth.hireveri.com";
+import { getRecruiterAccessUrl } from "@/lib/app-urls";
 
 export default function Home() {
-  redirect(`${authAppUrl}/recruiter-access`);
+  redirect(
+    getRecruiterAccessUrl(
+      process.env.RECRUITER_AUTH_APP_URL || process.env.AUTH_APP_URL
+    )
+  );
 }

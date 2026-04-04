@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { getPool } from "@/lib/db-admin";
+import {
+  getCandidateOnboardingUrl,
+  getRecruiterOnboardingUrl,
+} from "@/lib/app-urls";
 
-const authApp = process.env.AUTH_APP_URL || "https://www.auth.hireveri.com";
 const candidateApp = process.env.CANDIDATE_APP_URL!;
 const practiceCandidateApp =
   process.env.PRACTICE_CANDIDATE_APP_URL || candidateApp;
@@ -131,7 +134,9 @@ export async function POST(req: Request) {
             organizationId: recruiterRes.rows[0].organization_id,
             userId: recruiterRes.rows[0].user_id,
           })
-        : `${authApp}/onboarding/recruiter`;
+        : getRecruiterOnboardingUrl(
+            process.env.RECRUITER_AUTH_APP_URL || process.env.AUTH_APP_URL
+          );
     } else if (result.intent === "candidate_practice") {
       const candidateRes = await pool.query(
         `
@@ -161,7 +166,9 @@ export async function POST(req: Request) {
           [identityId, normalizedEmail]
         );
 
-        nextRoute = `${authApp}/onboarding/candidate`;
+        nextRoute = getCandidateOnboardingUrl(
+          process.env.PRACTICE_AUTH_APP_URL || process.env.AUTH_APP_URL
+        );
       } else {
         nextRoute = practiceCandidateApp;
       }

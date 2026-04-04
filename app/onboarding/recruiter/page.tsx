@@ -2,14 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { getRecruiterAccessUrl } from "@/lib/app-urls";
 
 const recruiterAppUrl =
   process.env.NEXT_PUBLIC_RECRUITER_APP_URL ||
   "https://recruiter.verihireai.work";
 const recruiterAppUrlTemplate =
   process.env.NEXT_PUBLIC_RECRUITER_APP_URL_TEMPLATE;
-const authAppUrl =
-  process.env.NEXT_PUBLIC_AUTH_APP_URL || "https://www.auth.hireveri.com";
+const recruiterAuthAccessUrl = getRecruiterAccessUrl(
+  process.env.NEXT_PUBLIC_RECRUITER_AUTH_APP_URL ||
+    process.env.NEXT_PUBLIC_AUTH_APP_URL
+);
 
 function buildRecruiterAppUrl(params: {
   organizationId?: string | null;
@@ -54,7 +57,7 @@ export default function RecruiterOnboardingPage() {
         setEmail(data.email);
       } catch {
         // session missing / expired → go back to login
-        window.location.href = `${authAppUrl}/recruiter-access`;
+        window.location.href = recruiterAuthAccessUrl;
       } finally {
         setEmailLoading(false);
       }

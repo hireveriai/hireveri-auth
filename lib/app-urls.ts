@@ -1,4 +1,4 @@
-const PRODUCTION_RECRUITER_AUTH_ORIGIN = "https://www.auth.hireveri.com";
+const PRODUCTION_RECRUITER_AUTH_ORIGIN = "https://auth.hireveri.com";
 const PRODUCTION_PRACTICE_AUTH_ORIGIN = "https://www.auth.hireveri.com";
 
 function normalizeOrigin(value?: string | null) {
