@@ -66,8 +66,8 @@ export async function requestOTP(params: {
     console.log("OTP (DEV ONLY):", otp);
   }
 
-  // Email delivery (only if SMTP configured)
-  if (email && process.env.SMTP_HOST) {
+  // Delivery is provider-agnostic; the mailer decides between Resend and SMTP.
+  if (email) {
     await sendOtpEmail(email, otp);
   }
 
