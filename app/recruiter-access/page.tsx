@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import BrandLogo from "@/components/brand-logo";
 
 type RecruiterIntent = "recruiter_login";
 
@@ -78,7 +79,13 @@ export default function RecruiterAccessPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0B0F14] text-white">
+    <div className="relative min-h-screen flex items-center justify-center bg-[#0B0F14] px-6 py-20 text-white">
+      <BrandLogo
+        priority
+        className="absolute left-6 top-6 md:left-10 md:top-8"
+        imageClassName="h-12 w-auto md:h-14"
+      />
+
       <div className="w-[420px] rounded-2xl border border-cyan-400/20 bg-[#0F141B]/90 p-8 backdrop-blur">
         <div className="mb-4 text-center text-xs uppercase tracking-wide text-cyan-400">
           {UI.badge}

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getRecruiterAccessUrl } from "@/lib/app-urls";
+import BrandLogo from "@/components/brand-logo";
 
 const recruiterAppUrl =
   process.env.NEXT_PUBLIC_RECRUITER_APP_URL ||
@@ -127,11 +128,8 @@ export default function RecruiterOnboardingPage() {
   return (
     <main className="min-h-screen w-full bg-[radial-gradient(ellipse_at_top,_rgba(34,211,238,0.12),_transparent_60%)]">
       {/* Header */}
-      <header className="flex items-center gap-3 px-10 py-6">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-cyan-500/20 text-cyan-300 font-semibold">
-          HV
-        </div>
-        <span className="text-lg font-semibold text-white">HireVeri</span>
+      <header className="px-10 py-6">
+        <BrandLogo priority imageClassName="h-12 w-auto md:h-14" />
       </header>
 
       {/* Content */}
