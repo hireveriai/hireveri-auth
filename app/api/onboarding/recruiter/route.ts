@@ -68,9 +68,26 @@ export async function POST(req: Request) {
     }
 
     const fullName = `${firstName} ${lastName}`.trim();
-    const recruiterRoleId = Number.isFinite(Number(recruiterRole))
-      ? Number(recruiterRole)
-      : null;
+    let recruiterRoleId: number | null = null;
+
+    if (typeof recruiterRole === "string" && recruiterRole.trim()) {
+      const roleLookup = await pool.query(
+        `
+        select legacy_role_id
+        from public.hireveri_recruiter_roles
+        where id = $1::uuid
+          and is_active = true
+        limit 1
+        `,
+        [recruiterRole]
+      );
+
+      recruiterRoleId = roleLookup.rows[0]?.legacy_role_id ?? null;
+
+      if (recruiterRoleId === null && Number.isFinite(Number(recruiterRole))) {
+        recruiterRoleId = Number(recruiterRole);
+      }
+    }
 
     const res = await pool.query(
       `
