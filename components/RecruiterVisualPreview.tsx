@@ -3,11 +3,12 @@ type RecruiterVisualPreviewProps = {
   imageUrl?: string;
 };
 
-const defaultHeroImage = "/brain-circuit-hero.png";
+const defaultHeroBackgroundImage =
+  'url("/Dashboard.png"), url("/Dashboard.jpg"), url("/Dashboard.jpeg"), url("/Dashboard.webp"), url("/Dashboard.avif"), url("/Dashboard")';
 
 export default function RecruiterVisualPreview({
   className = "",
-  imageUrl = defaultHeroImage,
+  imageUrl,
 }: RecruiterVisualPreviewProps) {
   return (
     <section
@@ -15,7 +16,11 @@ export default function RecruiterVisualPreview({
     >
       <div
         className="absolute inset-0 bg-center bg-cover bg-no-repeat opacity-80 brightness-[0.6] contrast-110 blur-[2px]"
-        style={{ backgroundImage: `url("${imageUrl}")` }}
+        style={{
+          backgroundImage: imageUrl
+            ? `url("${imageUrl}")`
+            : defaultHeroBackgroundImage,
+        }}
       />
 
       <div
