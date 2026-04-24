@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { getRecruiterAccessUrl } from "@/lib/app-urls";
-import BrandLogo from "@/components/brand-logo";
 import RecruiterVisualPreview from "@/components/RecruiterVisualPreview";
 import SearchableSelect, {
   type SearchableSelectOption,
@@ -282,11 +281,7 @@ export default function RecruiterOnboardingPage() {
 
   return (
     <main className="min-h-screen w-full bg-[radial-gradient(ellipse_at_top,_rgba(34,211,238,0.12),_transparent_60%)]">
-      <header className="px-10 py-6">
-        <BrandLogo priority imageClassName="h-12 w-auto md:h-14" />
-      </header>
-
-      <div className="mx-auto max-w-7xl px-10 py-10">
+      <div className="mx-auto max-w-7xl px-10 pb-10 pt-5">
         <div className="grid items-start gap-14 lg:grid-cols-2">
           <section className="flex flex-col justify-start">
             <div className="mb-10">
