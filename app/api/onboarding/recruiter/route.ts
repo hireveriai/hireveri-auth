@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getPool } from "@/lib/db-admin";
 import { requireSession } from "@/lib/session/requireSession";
+import { fallbackRecruiterRoles } from "@/lib/pools/fallback-pools";
 
 const recruiterApp =
   process.env.RECRUITER_APP_URL || "https://recruiter.verihireai.work";
@@ -39,6 +40,7 @@ export async function POST(req: Request) {
       lastName,
       companyName,
       recruiterRole,
+      recruiterRoleName,
     } = await req.json();
 
     if (!firstName || !lastName || !companyName) {
@@ -87,6 +89,17 @@ export async function POST(req: Request) {
       if (recruiterRoleId === null && Number.isFinite(Number(recruiterRole))) {
         recruiterRoleId = Number(recruiterRole);
       }
+    }
+
+    if (
+      recruiterRoleId === null &&
+      typeof recruiterRoleName === "string" &&
+      recruiterRoleName.trim()
+    ) {
+      recruiterRoleId =
+        fallbackRecruiterRoles.find(
+          (role) => role.name.toLowerCase() === recruiterRoleName.trim().toLowerCase()
+        )?.legacyRoleId ?? null;
     }
 
     const res = await pool.query(

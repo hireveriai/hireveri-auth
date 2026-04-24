@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getPool } from "@/lib/db-admin";
+import { fallbackRecruiterRoles } from "@/lib/pools/fallback-pools";
 
 export async function GET() {
   try {
@@ -16,11 +17,14 @@ export async function GET() {
       `
     );
 
-    return NextResponse.json(rows);
+    if (rows.length) {
+      return NextResponse.json(rows);
+    }
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to load recruiter roles";
-
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.warn("POOL RECRUITER ROLES FALLBACK:", error);
   }
+
+  return NextResponse.json(
+    fallbackRecruiterRoles.map(({ legacyRoleId: _legacyRoleId, ...role }) => role)
+  );
 }

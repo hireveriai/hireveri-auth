@@ -1,27 +1,30 @@
+import Image from "next/image";
+
 type RecruiterVisualPreviewProps = {
   className?: string;
   imageUrl?: string;
 };
 
-const defaultHeroBackgroundImage =
-  'url("/Dashboard.png"), url("/Dashboard.jpg"), url("/Dashboard.jpeg"), url("/Dashboard.webp"), url("/Dashboard.avif"), url("/Dashboard")';
+const defaultHeroImage = "/Dashboard.png";
 
 export default function RecruiterVisualPreview({
   className = "",
-  imageUrl,
+  imageUrl = defaultHeroImage,
 }: RecruiterVisualPreviewProps) {
   return (
     <section
       className={`relative flex min-h-[420px] items-center overflow-hidden rounded-2xl border border-white/10 bg-[#050a11] p-8 shadow-[0_0_120px_rgba(0,200,255,0.15)] ${className}`.trim()}
     >
-      <div
-        className="absolute inset-0 bg-center bg-cover bg-no-repeat opacity-80 brightness-[0.6] contrast-110 blur-[2px]"
-        style={{
-          backgroundImage: imageUrl
-            ? `url("${imageUrl}")`
-            : defaultHeroBackgroundImage,
-        }}
-      />
+      <div className="absolute inset-0 overflow-hidden">
+        <Image
+          src={imageUrl}
+          alt=""
+          fill
+          priority
+          sizes="(min-width: 1024px) 50vw, 100vw"
+          className="object-cover object-center opacity-95 brightness-[0.68] contrast-110 blur-[2px] scale-[1.03]"
+        />
+      </div>
 
       <div
         className="absolute inset-0"
