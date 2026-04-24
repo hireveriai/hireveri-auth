@@ -7,6 +7,7 @@ import RecruiterVisualPreview from "@/components/RecruiterVisualPreview";
 import SearchableSelect, {
   type SearchableSelectOption,
 } from "@/components/searchable-select";
+import PhoneInput, { type PhoneCountryOption } from "@/components/phone-input";
 
 const recruiterAppUrl =
   process.env.NEXT_PUBLIC_RECRUITER_APP_URL ||
@@ -61,13 +62,6 @@ type CompanySizeOption = {
   min: number;
   max: number | null;
   sortOrder: number;
-};
-
-type CountryOption = {
-  name: string;
-  isoCode: string;
-  phoneCode: string;
-  flag: string;
 };
 
 type PoolState<T> = {
@@ -146,9 +140,8 @@ export default function RecruiterOnboardingPage() {
   const [recruiterRoleId, setRecruiterRoleId] = useState("");
   const [industryId, setIndustryId] = useState("");
   const [companySizeId, setCompanySizeId] = useState("");
-  const [selectedCountry, setSelectedCountry] = useState<CountryOption | null>(
-    null
-  );
+  const [selectedCountry, setSelectedCountry] =
+    useState<PhoneCountryOption | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -159,7 +152,9 @@ export default function RecruiterOnboardingPage() {
   const companySizesState = usePoolOptions<CompanySizeOption>(
     "/api/pool/company-sizes"
   );
-  const countriesState = usePoolOptions<CountryOption>("/api/pool/countries");
+  const countriesState = usePoolOptions<PhoneCountryOption>(
+    "/api/pool/countries"
+  );
 
   useEffect(() => {
     async function loadEmail() {
@@ -210,16 +205,19 @@ export default function RecruiterOnboardingPage() {
       } employees`,
     }));
 
-  const countryOptions: SearchableSelectOption[] = countriesState.items.map(
-    (country) => ({
-      id: country.isoCode,
-      label: country.name,
-      icon: country.flag,
-      trailing: country.phoneCode,
-      description: country.isoCode,
-      searchText: `${country.name} ${country.isoCode} ${country.phoneCode}`,
-    })
-  );
+  useEffect(() => {
+    if (selectedCountry || !countriesState.items.length) {
+      return;
+    }
+
+    const india =
+      countriesState.items.find((country) => country.isoCode === "IN") ??
+      countriesState.items[0];
+
+    if (india) {
+      setSelectedCountry(india);
+    }
+  }, [countriesState.items, selectedCountry]);
 
   async function handleCreateWorkspace(e: React.FormEvent) {
     e.preventDefault();
@@ -372,19 +370,15 @@ export default function RecruiterOnboardingPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-[90px_1fr] gap-3">
-                  <input
-                    className="input text-center"
-                    value={selectedCountry?.phoneCode || "+91"}
-                    disabled
-                  />
-                  <input
-                    className="input"
-                    placeholder="Phone number"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                  />
-                </div>
+                <PhoneInput
+                  countries={countriesState.items}
+                  selectedCountry={selectedCountry}
+                  phone={phone}
+                  loading={countriesState.loading}
+                  error={countriesState.error}
+                  onCountryChange={setSelectedCountry}
+                  onPhoneChange={setPhone}
+                />
               </div>
 
               <div className="mb-8">
@@ -422,22 +416,6 @@ export default function RecruiterOnboardingPage() {
                     loading={industriesState.loading}
                     error={industriesState.error}
                     onChange={(option) => setIndustryId(option.id)}
-                  />
-
-                  <SearchableSelect
-                    options={countryOptions}
-                    valueId={selectedCountry?.isoCode}
-                    placeholder="Country"
-                    searchPlaceholder="Search countries"
-                    loading={countriesState.loading}
-                    error={countriesState.error}
-                    onChange={(option) => {
-                      const country =
-                        countriesState.items.find(
-                          (countryOption) => countryOption.isoCode === option.id
-                        ) ?? null;
-                      setSelectedCountry(country);
-                    }}
                   />
 
                   <SearchableSelect
