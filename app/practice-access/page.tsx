@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import BrandLogo from "@/components/brand-logo";
 
 type CandidateIntent = "candidate_practice";
 
@@ -11,8 +10,10 @@ const UI = {
   title: "Continue to Practice Room",
   subtitle: "Secure OTP-based access. No passwords.",
   emailPlaceholder: "Email address",
-  cta: "Continue securely",
+  cta: "Continue Securely and Verify",
 };
+
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function PracticeAccessPage() {
   const router = useRouter();
@@ -26,25 +27,41 @@ export default function PracticeAccessPage() {
     return sessionStorage.getItem("hireveri_candidate_email") ?? "";
   });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     document.title = "Practice Candidate Login | HireVeri";
   }, []);
 
-  async function sendOtp() {
-    if (!email.trim()) {
-      alert("Email is required");
+  const normalizedEmail = email.trim();
+  const isEmailValid = emailPattern.test(normalizedEmail);
+
+  async function handleContinue(e?: React.FormEvent<HTMLFormElement>) {
+    e?.preventDefault();
+
+    if (loading) {
       return;
     }
 
+    if (!normalizedEmail) {
+      setError("Email is required.");
+      return;
+    }
+
+    if (!isEmailValid) {
+      setError("Enter a valid email address.");
+      return;
+    }
+
+    setError(null);
     setLoading(true);
-    sessionStorage.setItem("hireveri_candidate_email", email);
+    sessionStorage.setItem("hireveri_candidate_email", normalizedEmail);
 
     const res = await fetch("/api/auth/request-otp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        email,
+        email: normalizedEmail,
         intent,
       }),
     });
@@ -55,37 +72,31 @@ export default function PracticeAccessPage() {
       data = await res.json();
     } catch {
       setLoading(false);
-      alert("Server error. Please try again.");
+      setError("Server error. Please try again.");
       return;
     }
 
     setLoading(false);
 
     if (!res.ok) {
-      alert(data?.error || "Failed to send OTP");
+      setError(data?.error || "Failed to send OTP");
       return;
     }
 
     if (!data?.identityId) {
-      alert("Identity could not be created. Please try again.");
+      setError("Identity could not be created. Please try again.");
       return;
     }
 
     router.push(
       `/verify-otp?identityId=${data.identityId}&email=${encodeURIComponent(
-        email
+        normalizedEmail
       )}&intent=${intent}`
     );
   }
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-[#0B0F14] px-6 py-20 text-white">
-      <BrandLogo
-        priority
-        className="absolute left-6 top-6 md:left-10 md:top-8"
-        imageClassName="h-12 w-auto md:h-14"
-      />
-
+    <div className="min-h-screen flex items-center justify-center bg-[#0B0F14] px-6 py-20 text-white">
       <div className="w-[420px] rounded-2xl border border-cyan-400/20 bg-[#0F141B]/90 p-8 backdrop-blur">
         <div className="mb-4 text-center text-xs uppercase tracking-wide text-cyan-400">
           {UI.badge}
@@ -97,25 +108,46 @@ export default function PracticeAccessPage() {
           {UI.subtitle}
         </p>
 
-        <input
-          type="email"
-          placeholder={UI.emailPlaceholder}
-          className="mb-2 w-full rounded border border-white/10 bg-black p-3 focus:border-cyan-400/40 focus:outline-none"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
+        <form onSubmit={handleContinue}>
+          <input
+            type="email"
+            placeholder={UI.emailPlaceholder}
+            className="mb-2 w-full rounded border border-white/10 bg-black p-3 focus:border-cyan-400/40 focus:outline-none"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (error) {
+                setError(null);
+              }
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                e.currentTarget.form?.requestSubmit();
+              }
+            }}
+            aria-invalid={!!error}
+            aria-describedby={error ? "practice-email-error" : undefined}
+          />
 
-        <p className="mb-4 text-xs text-white/50">
-          We&apos;ll send a 6-digit one-time verification code
-        </p>
+          <p className="mb-4 text-xs text-white/50">
+            We&apos;ll send a 6-digit one-time verification code
+          </p>
 
-        <button
-          onClick={sendOtp}
-          disabled={loading}
-          className="w-full rounded-xl bg-cyan-500 py-3 font-semibold text-black transition hover:bg-cyan-400 disabled:opacity-50"
-        >
-          {loading ? "Sending OTP..." : UI.cta}
-        </button>
+          {error ? (
+            <p id="practice-email-error" className="mb-3 text-sm text-red-400">
+              {error}
+            </p>
+          ) : null}
+
+          <button
+            type="submit"
+            disabled={!isEmailValid || loading}
+            className="w-full rounded-xl bg-cyan-500 py-3 font-semibold text-black transition hover:bg-cyan-400 disabled:opacity-50"
+          >
+            {loading ? "Verifying..." : UI.cta}
+          </button>
+        </form>
       </div>
     </div>
   );

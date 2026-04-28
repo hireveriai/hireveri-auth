@@ -4,6 +4,7 @@ import {
   getCandidateOnboardingUrl,
   getRecruiterOnboardingUrl,
 } from "@/lib/app-urls";
+import { signRecruiterJwt } from "@/lib/auth/jwt";
 
 const candidateApp = process.env.CANDIDATE_APP_URL!;
 const practiceCandidateApp =
@@ -188,11 +189,14 @@ export async function POST(req: Request) {
     }
 
     let nextRoute = result.redirectUrl;
+    let token: string | undefined;
 
     if (result.intent === "recruiter_login") {
       const recruiterRes = await pool.query(
         `
-        SELECT user_id, organization_id
+        SELECT
+          user_id AS id,
+          organization_id AS org_id
         FROM public.users
         WHERE role = 'RECRUITER'
           AND is_active = true
@@ -202,14 +206,19 @@ export async function POST(req: Request) {
         [normalizedEmail]
       );
 
-      nextRoute = recruiterRes.rows.length
-        ? buildRecruiterAppUrl({
-            organizationId: recruiterRes.rows[0].organization_id,
-            userId: recruiterRes.rows[0].user_id,
-          })
-        : getRecruiterOnboardingUrl(
-            process.env.RECRUITER_AUTH_APP_URL || process.env.AUTH_APP_URL
-          );
+      const user = recruiterRes.rows[0];
+
+      if (user) {
+        token = signRecruiterJwt(user);
+        nextRoute = buildRecruiterAppUrl({
+          organizationId: user.org_id,
+          userId: user.id,
+        });
+      } else {
+        nextRoute = getRecruiterOnboardingUrl(
+          process.env.RECRUITER_AUTH_APP_URL || process.env.AUTH_APP_URL
+        );
+      }
     } else if (result.intent === "candidate_practice") {
       const candidateRes = await pool.query(
         `
@@ -252,6 +261,7 @@ export async function POST(req: Request) {
     const response = NextResponse.json({
       success: true,
       nextRoute,
+      ...(token ? { token } : {}),
     });
 
     const resolvedSessionCookieDomain = resolveSessionCookieDomain(req);

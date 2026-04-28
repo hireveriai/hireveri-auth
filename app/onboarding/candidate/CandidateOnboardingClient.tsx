@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { submitCandidateOnboarding } from "./actions";
-import BrandLogo from "@/components/brand-logo";
 
 /* ------------------------------------------------------------------ */
 /* TYPES                                                              */
@@ -53,10 +52,6 @@ export default function CandidateOnboardingClient({
   return (
     <main className="relative min-h-screen bg-[#0b1218] text-neutral-100">
       <div className="absolute inset-0 bg-gradient-to-br from-[#0b1218] via-[#0e1a22] to-[#0b1218]" />
-
-      <div className="relative z-10 px-6 pt-6">
-        <BrandLogo priority imageClassName="h-12 w-auto md:h-14" />
-      </div>
 
       <div className="relative z-10 mx-auto max-w-7xl px-6 pb-16 pt-8 grid grid-cols-1 gap-16 lg:grid-cols-2">
         {/* LEFT */}
