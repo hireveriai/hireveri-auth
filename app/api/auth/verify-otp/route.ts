@@ -209,7 +209,12 @@ export async function POST(req: Request) {
       const user = recruiterRes.rows[0];
 
       if (user) {
-        token = signRecruiterJwt(user);
+        try {
+          token = signRecruiterJwt(user);
+        } catch (jwtError) {
+          console.warn("VERIFY OTP JWT WARNING:", jwtError);
+        }
+
         nextRoute = buildRecruiterAppUrl({
           organizationId: user.org_id,
           userId: user.id,

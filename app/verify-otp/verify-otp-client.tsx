@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 
 type VerifyOtpResponse = {
   error?: string;
@@ -34,7 +34,13 @@ export default function VerifyOtpClient() {
     return () => clearInterval(interval);
   }, [timer]);
 
-  async function verifyOtp() {
+  async function handleVerifySubmit(e?: FormEvent<HTMLFormElement>) {
+    e?.preventDefault();
+
+    if (loading) {
+      return;
+    }
+
     if (!identityId || !email) {
       setError("Session expired. Please restart sign in.");
       return;
@@ -111,67 +117,77 @@ export default function VerifyOtpClient() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0B0F14] px-6 py-20 text-white">
       <div className="w-[420px] rounded-2xl border border-cyan-400/20 bg-[#0F141B]/90 p-8">
-        <h1 className="mb-1 text-center text-2xl font-semibold">
-          Verify your code
-        </h1>
+        <form onSubmit={handleVerifySubmit}>
+          <h1 className="mb-1 text-center text-2xl font-semibold">
+            Verify your code
+          </h1>
 
-        <p className="mb-6 text-center text-sm text-white/60">
-          Enter the 6-digit code we sent to{" "}
-          <span className="font-medium text-white">{email}</span>
-        </p>
+          <p className="mb-6 text-center text-sm text-white/60">
+            Enter the 6-digit code we sent to{" "}
+            <span className="font-medium text-white">{email}</span>
+          </p>
 
-        <input
-          value={otp}
-          onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-          maxLength={6}
-          disabled={loading}
-          placeholder="••••••"
-          className="mb-3 w-full rounded border border-white/10 bg-black p-3 text-center text-lg tracking-widest focus:border-cyan-400/40 focus:outline-none disabled:opacity-60"
-        />
-
-        <div className="mb-4 text-center text-sm text-white/50">
-          {timer > 0 ? (
-            <span>Resend code in {timer}s</span>
-          ) : (
-            <button
-              type="button"
-              onClick={resendOtp}
-              className="underline transition hover:text-white"
-            >
-              Didn&apos;t receive the code? Resend
-            </button>
-          )}
-        </div>
-
-        <label className="mb-4 flex items-start gap-2 text-[12px] text-white/60">
           <input
-            type="checkbox"
-            checked={agreed}
-            onChange={(e) => setAgreed(e.target.checked)}
-            className="mt-1 accent-cyan-500"
+            value={otp}
+            onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                e.currentTarget.form?.requestSubmit();
+              }
+            }}
+            maxLength={6}
+            disabled={loading}
+            placeholder="••••••"
+            className="mb-3 w-full rounded border border-white/10 bg-black p-3 text-center text-lg tracking-widest focus:border-cyan-400/40 focus:outline-none disabled:opacity-60"
           />
-          <span>
-            I agree to HireVeri&apos;s{" "}
-            <a href="/terms" target="_blank" className="underline hover:text-white">
-              Terms of Service
-            </a>{" "}
-            and{" "}
-            <a href="/privacy" target="_blank" className="underline hover:text-white">
-              Privacy Policy
-            </a>
-            .
-          </span>
-        </label>
 
-        {error && <p className="mb-3 text-center text-sm text-red-400">{error}</p>}
+          <div className="mb-4 text-center text-sm text-white/50">
+            {timer > 0 ? (
+              <span>Resend code in {timer}s</span>
+            ) : (
+              <button
+                type="button"
+                onClick={resendOtp}
+                className="underline transition hover:text-white"
+              >
+                Didn&apos;t receive the code? Resend
+              </button>
+            )}
+          </div>
 
-        <button
-          onClick={verifyOtp}
-          disabled={loading}
-          className="w-full rounded bg-cyan-500 py-3 font-semibold text-black transition hover:bg-cyan-400 disabled:opacity-50"
-        >
-          {loading ? "Verifying..." : "Verify & Continue"}
-        </button>
+          <label className="mb-4 flex items-start gap-2 text-[12px] text-white/60">
+            <input
+              type="checkbox"
+              checked={agreed}
+              onChange={(e) => setAgreed(e.target.checked)}
+              className="mt-1 accent-cyan-500"
+            />
+            <span>
+              I agree to HireVeri&apos;s{" "}
+              <a href="/terms" target="_blank" className="underline hover:text-white">
+                Terms of Service
+              </a>{" "}
+              and{" "}
+              <a href="/privacy" target="_blank" className="underline hover:text-white">
+                Privacy Policy
+              </a>
+              .
+            </span>
+          </label>
+
+          {error ? (
+            <p className="mb-3 text-center text-sm text-red-400">{error}</p>
+          ) : null}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded bg-cyan-500 py-3 font-semibold text-black transition hover:bg-cyan-400 disabled:opacity-50"
+          >
+            {loading ? "Verifying..." : "Verify & Continue"}
+          </button>
+        </form>
       </div>
     </div>
   );
