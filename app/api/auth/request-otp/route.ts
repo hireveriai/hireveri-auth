@@ -1,6 +1,20 @@
 import { NextResponse } from "next/server";
 import { requestOTP } from "@/lib/otp/otp.service";
 
+function getRequestOtpErrorMessage(error: unknown) {
+  const message =
+    error instanceof Error ? error.message : "Failed to send OTP";
+
+  if (
+    message.includes("MaxClientsInSessionMode") ||
+    message.toLowerCase().includes("max clients reached")
+  ) {
+    return "Too many login requests are being processed right now. Please try again in a few seconds.";
+  }
+
+  return "Failed to send OTP. Please try again.";
+}
+
 /**
  * Auth OTP Request
  * - Intent is REQUIRED
@@ -51,9 +65,11 @@ export async function POST(req: Request) {
       otpId: result.otpId,
       expiresIn: result.expiresIn,
     });
-  } catch (err: any) {
+  } catch (err) {
+    console.error("REQUEST OTP ERROR:", err);
+
     return NextResponse.json(
-      { error: err.message || "Failed to send OTP" },
+      { error: getRequestOtpErrorMessage(err) },
       { status: 500 }
     );
   }
