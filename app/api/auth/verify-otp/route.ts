@@ -13,6 +13,7 @@ const recruiterApp =
   process.env.RECRUITER_APP_URL || "https://recruiter.verihireai.work";
 const recruiterAppTemplate = process.env.RECRUITER_APP_URL_TEMPLATE;
 const sessionCookieDomain = process.env.SESSION_COOKIE_DOMAIN;
+const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
 
 function getRequestHostname(req: Request) {
   const forwardedHost = req.headers.get("x-forwarded-host");
@@ -84,6 +85,17 @@ function resolveSessionCookieDomain(req: Request) {
   }
 
   return configuredDomain || undefined;
+}
+
+function getSharedCookieOptions(req: Request) {
+  return {
+    httpOnly: true,
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    domain: resolveSessionCookieDomain(req),
+    maxAge: SESSION_MAX_AGE_SECONDS,
+  } as const;
 }
 
 function buildRecruiterAppUrl(params: {
@@ -269,15 +281,18 @@ export async function POST(req: Request) {
       ...(token ? { token } : {}),
     });
 
-    const resolvedSessionCookieDomain = resolveSessionCookieDomain(req);
+    const sharedCookieOptions = getSharedCookieOptions(req);
 
-    response.cookies.set("hireveri_session", result.sessionId, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      domain: resolvedSessionCookieDomain,
-    });
+    response.cookies.set("hireveri_session", result.sessionId, sharedCookieOptions);
+
+    if (token) {
+      response.cookies.set("authToken", token, sharedCookieOptions);
+    } else {
+      response.cookies.set("authToken", "", {
+        ...sharedCookieOptions,
+        maxAge: 0,
+      });
+    }
 
     return response;
   } catch (error) {
