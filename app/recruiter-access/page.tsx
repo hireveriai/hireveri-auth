@@ -18,19 +18,14 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export default function RecruiterAccessPage() {
   const router = useRouter();
   const intent: RecruiterIntent = "recruiter_login";
-
-  const [email, setEmail] = useState(() => {
-    if (typeof window === "undefined") {
-      return "";
-    }
-
-    return sessionStorage.getItem("hireveri_recruiter_email") ?? "";
-  });
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     document.title = "Recruiter Login | HireVeri";
+
+    sessionStorage.removeItem("hireveri_recruiter_email");
   }, []);
 
   const normalizedEmail = email.trim();
@@ -55,7 +50,6 @@ export default function RecruiterAccessPage() {
 
     setError(null);
     setLoading(true);
-    sessionStorage.setItem("hireveri_recruiter_email", normalizedEmail);
 
     const res = await fetch("/api/auth/request-otp", {
       method: "POST",

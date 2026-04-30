@@ -18,19 +18,14 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export default function PracticeAccessPage() {
   const router = useRouter();
   const intent: CandidateIntent = "candidate_practice";
-
-  const [email, setEmail] = useState(() => {
-    if (typeof window === "undefined") {
-      return "";
-    }
-
-    return sessionStorage.getItem("hireveri_candidate_email") ?? "";
-  });
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     document.title = "Practice Candidate Login | HireVeri";
+
+    sessionStorage.removeItem("hireveri_candidate_email");
   }, []);
 
   const normalizedEmail = email.trim();
@@ -55,7 +50,6 @@ export default function PracticeAccessPage() {
 
     setError(null);
     setLoading(true);
-    sessionStorage.setItem("hireveri_candidate_email", normalizedEmail);
 
     const res = await fetch("/api/auth/request-otp", {
       method: "POST",
