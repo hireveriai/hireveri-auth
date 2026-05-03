@@ -17,12 +17,15 @@ export function getPool() {
       database: process.env.DB_NAME!,
       max: Number(process.env.DB_POOL_MAX ?? 1),
       idleTimeoutMillis: Number(
-        process.env.DB_IDLE_TIMEOUT_MS ?? 10_000
+        process.env.DB_IDLE_TIMEOUT_MS ?? 500
       ),
       connectionTimeoutMillis: Number(
-        process.env.DB_CONNECTION_TIMEOUT_MS ?? 5_000
+        process.env.DB_CONNECTION_TIMEOUT_MS ?? 1_500
       ),
       maxUses: Number(process.env.DB_MAX_USES ?? 7_500),
+      maxLifetimeSeconds: Number(
+        process.env.DB_MAX_LIFETIME_SECONDS ?? 15
+      ),
       allowExitOnIdle: true,
       ssl:
         process.env.DB_SSL === "true"

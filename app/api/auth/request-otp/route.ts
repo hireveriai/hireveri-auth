@@ -1,18 +1,44 @@
 import { NextResponse } from "next/server";
 import { requestOTP } from "@/lib/otp/otp.service";
 
+function isMaxClientsError(error: unknown) {
+  const message =
+    error instanceof Error ? error.message : String(error ?? "");
+
+  return (
+    message.includes("MaxClientsInSessionMode") ||
+    message.toLowerCase().includes("max clients reached")
+  );
+}
+
 function getRequestOtpErrorMessage(error: unknown) {
   const message =
     error instanceof Error ? error.message : "Failed to send OTP";
 
-  if (
-    message.includes("MaxClientsInSessionMode") ||
-    message.toLowerCase().includes("max clients reached")
-  ) {
+  if (isMaxClientsError(error)) {
     return "Too many login requests are being processed right now. Please try again in a few seconds.";
   }
 
   return "Failed to send OTP. Please try again.";
+}
+
+function wait(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function requestOtpWithRetry(params: Parameters<typeof requestOTP>[0]) {
+  try {
+    return await requestOTP(params);
+  } catch (error) {
+    if (!isMaxClientsError(error)) {
+      throw error;
+    }
+
+    console.warn("REQUEST OTP RETRYING AFTER DB POOL SATURATION");
+    await wait(600);
+
+    return requestOTP(params);
+  }
 }
 
 /**
@@ -53,7 +79,7 @@ export async function POST(req: Request) {
     }
 
     // 🔐 Issue OTP (DB-owned)
-    const result = await requestOTP({
+    const result = await requestOtpWithRetry({
       email,
       intent,
       purpose: "LOGIN",
