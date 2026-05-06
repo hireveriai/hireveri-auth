@@ -122,13 +122,50 @@ export async function POST(req: Request) {
     if (result.intent === "recruiter_login") {
       const recruiterRes = await pool.query(
         `
+        WITH auth_match AS (
+          SELECT
+            coalesce(u.user_id, om.legacy_user_id, au.id) AS id,
+            coalesce(u.organization_id, om.org_id) AS org_id,
+            0 AS priority
+          FROM public.auth_users au
+          JOIN public.organization_memberships om
+            ON om.auth_user_id = au.id
+          LEFT JOIN public.users u
+            ON (
+              u.user_id = om.legacy_user_id
+              OR (
+                u.auth_user_id = au.id
+                AND u.organization_id = om.org_id
+                AND u.role IN ('RECRUITER', 'ORG_OWNER', 'ADMIN')
+              )
+            )
+           AND u.is_active = true
+          WHERE au.email_normalized = $1::text
+            AND om.role IN ('RECRUITER', 'ORG_OWNER', 'ADMIN', 'INTERVIEWER')
+          ORDER BY om.created_at ASC
+          LIMIT 1
+        ),
+        legacy_match AS (
+          SELECT
+            u.user_id AS id,
+            u.organization_id AS org_id,
+            1 AS priority
+          FROM public.users u
+          WHERE u.role IN ('RECRUITER', 'ORG_OWNER', 'ADMIN')
+            AND u.is_active = true
+            AND lower(u.email) = $1::text
+          ORDER BY u.created_at ASC
+          LIMIT 1
+        )
         SELECT
-          user_id AS id,
-          organization_id AS org_id
-        FROM public.users
-        WHERE role = 'RECRUITER'
-          AND is_active = true
-          AND lower(email) = $1::text
+          candidate.id,
+          candidate.org_id
+        FROM (
+          SELECT * FROM auth_match
+          UNION ALL
+          SELECT * FROM legacy_match
+        ) candidate
+        ORDER BY candidate.priority
         LIMIT 1
         `,
         [normalizedEmail]
@@ -155,32 +192,17 @@ export async function POST(req: Request) {
     } else if (result.intent === "candidate_practice") {
       const candidateRes = await pool.query(
         `
-        SELECT user_id
-        FROM public.users
-        WHERE role = 'CANDIDATE'
-          AND is_active = true
-          AND (
-            identity_id = $1::uuid
-            OR lower(email) = $2::text
-          )
-        LIMIT 1
+        SELECT *
+        FROM public.sp_create_practice_candidate(
+          $1::uuid,
+          $2::text,
+          NULL::text
+        )
         `,
         [identityId, normalizedEmail]
       );
 
-      if (!candidateRes.rows.length) {
-        await pool.query(
-          `
-          SELECT *
-          FROM public.sp_create_practice_candidate(
-            $1::uuid,
-            $2::text,
-            NULL::text
-          )
-          `,
-          [identityId, normalizedEmail]
-        );
-
+      if (candidateRes.rows[0]?.created_new) {
         nextRoute = getCandidateOnboardingUrl(
           process.env.PRACTICE_AUTH_APP_URL || process.env.AUTH_APP_URL
         );

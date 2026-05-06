@@ -5,9 +5,9 @@ export const metadata: Metadata = {
   title: "HireVeri Auth",
   description: "Secure OTP-based access for recruiter and practice candidate sign-in.",
   icons: {
-    icon: [{ url: "/icon", type: "image/png" }],
-    shortcut: ["/icon"],
-    apple: ["/icon"],
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    shortcut: ["/icon.svg"],
+    apple: ["/icon.svg"],
   },
 };
 

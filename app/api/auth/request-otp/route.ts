@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requestOTP } from "@/lib/otp/otp.service";
+import { isOtpEmailDeliveryError } from "@/lib/email";
 
 function isMaxClientsError(error: unknown) {
   const message =
@@ -12,11 +13,12 @@ function isMaxClientsError(error: unknown) {
 }
 
 function getRequestOtpErrorMessage(error: unknown) {
-  const message =
-    error instanceof Error ? error.message : "Failed to send OTP";
-
   if (isMaxClientsError(error)) {
     return "Too many login requests are being processed right now. Please try again in a few seconds.";
+  }
+
+  if (isOtpEmailDeliveryError(error)) {
+    return error.publicMessage;
   }
 
   return "Failed to send OTP. Please try again.";

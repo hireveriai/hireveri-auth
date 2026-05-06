@@ -3,6 +3,20 @@ import nodemailer from "nodemailer";
 const defaultFrom = "HireVeri <no-reply@mail.hireveri.com>";
 const resendApiUrl = "https://api.resend.com/emails";
 
+export class OtpEmailDeliveryError extends Error {
+  public readonly publicMessage: string;
+
+  constructor(message: string, publicMessage = "Email delivery failed. Please try again.") {
+    super(message);
+    this.name = "OtpEmailDeliveryError";
+    this.publicMessage = publicMessage;
+  }
+}
+
+export function isOtpEmailDeliveryError(error: unknown) {
+  return error instanceof OtpEmailDeliveryError;
+}
+
 function getConfiguredFrom() {
   const emailFrom = process.env.EMAIL_FROM?.trim();
 
@@ -31,14 +45,19 @@ function getTransporter() {
     return null;
   }
 
+  const port = Number(process.env.SMTP_PORT || 587);
+
   return nodemailer.createTransport({
     host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT),
-    secure: false,
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS
-    }
+    port,
+    secure: port === 465,
+    auth:
+      process.env.SMTP_USER && process.env.SMTP_PASS
+        ? {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS,
+          }
+        : undefined,
   });
 }
 
@@ -75,14 +94,22 @@ async function sendViaResend(to: string, otp: string) {
 
   if (!res.ok) {
     const errorText = await res.text();
-    throw new Error(`Resend send failed: ${errorText}`);
+    throw new OtpEmailDeliveryError(`Resend send failed: ${errorText}`);
   }
 
   return true;
 }
 
 export async function sendOtpEmail(to: string, otp: string) {
-  const sentWithResend = await sendViaResend(to, otp);
+  let resendError: unknown;
+  let sentWithResend = false;
+
+  try {
+    sentWithResend = await sendViaResend(to, otp);
+  } catch (error) {
+    resendError = error;
+    console.warn("OTP RESEND DELIVERY FAILED; falling back to SMTP if configured.", error);
+  }
 
   if (sentWithResend) {
     return;
@@ -91,8 +118,15 @@ export async function sendOtpEmail(to: string, otp: string) {
   const transporter = getTransporter();
 
   if (!transporter) {
+    if (resendError) {
+      throw resendError;
+    }
+
     if (process.env.NODE_ENV === "production") {
-      throw new Error("No email transport configured");
+      throw new OtpEmailDeliveryError(
+        "No email transport configured",
+        "Email delivery is not configured. Please contact support."
+      );
     }
 
     console.warn(
@@ -101,18 +135,24 @@ export async function sendOtpEmail(to: string, otp: string) {
     return;
   }
 
-  await transporter.sendMail({
-    from: getConfiguredFrom(),
-    to,
-    subject: "Your HireVeri OTP",
-    text: `Your HireVeri OTP is ${otp}. It is valid for 5 minutes.`,
-    html: `
-      <div style="font-family: Arial, sans-serif">
-        <h2>HireVeri Login</h2>
-        <p>Your OTP is:</p>
-        <h1 style="letter-spacing:4px">${otp}</h1>
-        <p>This code is valid for 5 minutes.</p>
-      </div>
-    `
-  });
+  try {
+    await transporter.sendMail({
+      from: getConfiguredFrom(),
+      to,
+      subject: "Your HireVeri OTP",
+      text: `Your HireVeri OTP is ${otp}. It is valid for 5 minutes.`,
+      html: `
+        <div style="font-family: Arial, sans-serif">
+          <h2>HireVeri Login</h2>
+          <p>Your OTP is:</p>
+          <h1 style="letter-spacing:4px">${otp}</h1>
+          <p>This code is valid for 5 minutes.</p>
+        </div>
+      `,
+    });
+  } catch (error) {
+    throw new OtpEmailDeliveryError(
+      `SMTP send failed: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
 }
