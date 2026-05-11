@@ -11,14 +11,40 @@ const candidateApp = process.env.CANDIDATE_APP_URL!;
 const practiceCandidateApp =
   process.env.PRACTICE_CANDIDATE_APP_URL || candidateApp;
 const recruiterApp =
-  process.env.RECRUITER_APP_URL || "https://recruiter.verihireai.work";
+  process.env.RECRUITER_APP_URL || "https://recruiter.hireveri.com";
 const recruiterAppTemplate = process.env.RECRUITER_APP_URL_TEMPLATE;
 
 function buildRecruiterAppUrl(params: {
   organizationId?: string | null;
   userId?: string | null;
+  token?: string | null;
+  sessionId?: string | null;
 }) {
-  const { organizationId, userId } = params;
+  const { organizationId, userId, token, sessionId } = params;
+
+  if (token || sessionId) {
+    const handoffUrl = new URL("/api/auth/handoff", recruiterApp);
+    const nextUrl = new URL("/", recruiterApp);
+
+    if (organizationId) {
+      nextUrl.searchParams.set("organizationId", organizationId);
+    }
+
+    if (userId) {
+      nextUrl.searchParams.set("userId", userId);
+    }
+
+    if (token) {
+      handoffUrl.searchParams.set("token", token);
+    }
+
+    if (sessionId) {
+      handoffUrl.searchParams.set("session", sessionId);
+    }
+
+    handoffUrl.searchParams.set("next", `${nextUrl.pathname}${nextUrl.search}`);
+    return handoffUrl.toString();
+  }
 
   if (recruiterAppTemplate) {
     return recruiterAppTemplate
@@ -183,6 +209,8 @@ export async function POST(req: Request) {
         nextRoute = buildRecruiterAppUrl({
           organizationId: user.org_id,
           userId: user.id,
+          token,
+          sessionId: result.sessionId,
         });
       } else {
         nextRoute = getRecruiterOnboardingUrl(
