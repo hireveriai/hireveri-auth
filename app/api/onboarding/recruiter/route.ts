@@ -4,7 +4,7 @@ import { requireSession } from "@/lib/session/requireSession";
 import { fallbackRecruiterRoles } from "@/lib/pools/fallback-pools";
 
 const recruiterApp =
-  process.env.RECRUITER_APP_URL || "https://recruiter.verihireai.work";
+  process.env.RECRUITER_APP_URL || "https://recruiter.hireveri.com";
 const recruiterAppTemplate = process.env.RECRUITER_APP_URL_TEMPLATE;
 
 function buildRecruiterAppUrl(params: {
@@ -14,9 +14,17 @@ function buildRecruiterAppUrl(params: {
   const { organizationId, userId } = params;
 
   if (recruiterAppTemplate) {
-    return recruiterAppTemplate
+    const templatedUrl = recruiterAppTemplate
       .replaceAll("{organizationId}", organizationId ?? "")
       .replaceAll("{userId}", userId ?? "");
+
+    try {
+      if (new URL(templatedUrl).origin === new URL(recruiterApp).origin) {
+        return templatedUrl;
+      }
+    } catch {
+      // Fall back to the configured recruiter app below.
+    }
   }
 
   const url = new URL(recruiterApp);

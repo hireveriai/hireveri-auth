@@ -10,7 +10,7 @@ import PhoneInput, { type PhoneCountryOption } from "@/components/phone-input";
 
 const recruiterAppUrl =
   process.env.NEXT_PUBLIC_RECRUITER_APP_URL ||
-  "https://recruiter.verihireai.work";
+  "https://recruiter.hireveri.com";
 const recruiterAppUrlTemplate =
   process.env.NEXT_PUBLIC_RECRUITER_APP_URL_TEMPLATE;
 const recruiterAuthAccessUrl = getRecruiterAccessUrl(
@@ -25,9 +25,17 @@ function buildRecruiterAppUrl(params: {
   const { organizationId, userId } = params;
 
   if (recruiterAppUrlTemplate) {
-    return recruiterAppUrlTemplate
+    const templatedUrl = recruiterAppUrlTemplate
       .replaceAll("{organizationId}", organizationId ?? "")
       .replaceAll("{userId}", userId ?? "");
+
+    try {
+      if (new URL(templatedUrl).origin === new URL(recruiterAppUrl).origin) {
+        return templatedUrl;
+      }
+    } catch {
+      // Fall back to the configured recruiter app below.
+    }
   }
 
   const url = new URL(recruiterAppUrl);

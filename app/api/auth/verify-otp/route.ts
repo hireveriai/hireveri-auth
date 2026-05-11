@@ -21,6 +21,8 @@ const AUTH_COOKIE_NAMES = [
   "token",
 ];
 const AUTH_COOKIE_DOMAINS = [".hireveri.com", ".verihireai.work"];
+const USE_RECRUITER_QUERY_HANDOFF =
+  process.env.RECRUITER_QUERY_HANDOFF === "true";
 
 function buildRecruiterAppUrl(params: {
   organizationId?: string | null;
@@ -30,7 +32,7 @@ function buildRecruiterAppUrl(params: {
 }) {
   const { organizationId, userId, token, sessionId } = params;
 
-  if (token || sessionId) {
+  if (USE_RECRUITER_QUERY_HANDOFF && (token || sessionId)) {
     const handoffUrl = new URL("/api/auth/handoff", recruiterApp);
     const nextUrl = new URL("/", recruiterApp);
 
@@ -55,9 +57,17 @@ function buildRecruiterAppUrl(params: {
   }
 
   if (recruiterAppTemplate) {
-    return recruiterAppTemplate
+    const templatedUrl = recruiterAppTemplate
       .replaceAll("{organizationId}", organizationId ?? "")
       .replaceAll("{userId}", userId ?? "");
+
+    try {
+      if (new URL(templatedUrl).origin === new URL(recruiterApp).origin) {
+        return templatedUrl;
+      }
+    } catch {
+      // Fall back to the configured recruiter app below.
+    }
   }
 
   const url = new URL(recruiterApp);
@@ -274,6 +284,17 @@ export async function POST(req: Request) {
             maxAge: 0,
           });
         }
+      }
+
+      response.cookies.set(
+        "hireveri_session",
+        result.sessionId,
+        sharedCookieOptions
+      );
+
+      if (token) {
+        response.cookies.set("authToken", token, sharedCookieOptions);
+        response.cookies.set("accessToken", token, sharedCookieOptions);
       }
 
       return response;
