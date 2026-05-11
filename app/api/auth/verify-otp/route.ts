@@ -211,13 +211,9 @@ export async function POST(req: Request) {
         try {
           token = signRecruiterJwt(user);
         } catch (jwtError) {
-          console.error("VERIFY OTP JWT ERROR:", jwtError);
-          return NextResponse.json(
-            {
-              error:
-                "Recruiter login token signing is not configured. Set JWT_SECRET on both auth and recruiter deployments.",
-            },
-            { status: 500 }
+          console.warn(
+            "VERIFY OTP JWT WARNING: falling back to recruiter session handoff",
+            jwtError
           );
         }
 
