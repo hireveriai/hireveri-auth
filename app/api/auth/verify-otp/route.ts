@@ -42,7 +42,7 @@ function buildRecruiterAppUrl(params: {
       nextUrl.searchParams.set("userId", userId);
     }
 
-    if (token) {
+    if (token && !sessionId) {
       handoffUrl.searchParams.set("token", token);
     }
 
