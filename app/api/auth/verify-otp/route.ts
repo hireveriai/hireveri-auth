@@ -13,6 +13,14 @@ const practiceCandidateApp =
 const recruiterApp =
   process.env.RECRUITER_APP_URL || "https://recruiter.hireveri.com";
 const recruiterAppTemplate = process.env.RECRUITER_APP_URL_TEMPLATE;
+const AUTH_COOKIE_NAMES = [
+  "hireveri_session",
+  "authToken",
+  "accessToken",
+  "access_token",
+  "token",
+];
+const AUTH_COOKIE_DOMAINS = [".hireveri.com", ".verihireai.work"];
 
 function buildRecruiterAppUrl(params: {
   organizationId?: string | null;
@@ -203,7 +211,14 @@ export async function POST(req: Request) {
         try {
           token = signRecruiterJwt(user);
         } catch (jwtError) {
-          console.warn("VERIFY OTP JWT WARNING:", jwtError);
+          console.error("VERIFY OTP JWT ERROR:", jwtError);
+          return NextResponse.json(
+            {
+              error:
+                "Recruiter login token signing is not configured. Set JWT_SECRET on both auth and recruiter deployments.",
+            },
+            { status: 500 }
+          );
         }
 
         nextRoute = buildRecruiterAppUrl({
@@ -248,6 +263,25 @@ export async function POST(req: Request) {
     });
 
     const sharedCookieOptions = getSharedCookieOptions(req);
+
+    if (result.intent === "recruiter_login") {
+      for (const name of AUTH_COOKIE_NAMES) {
+        response.cookies.set(name, "", {
+          ...sharedCookieOptions,
+          maxAge: 0,
+        });
+
+        for (const domain of AUTH_COOKIE_DOMAINS) {
+          response.cookies.set(name, "", {
+            ...sharedCookieOptions,
+            domain,
+            maxAge: 0,
+          });
+        }
+      }
+
+      return response;
+    }
 
     response.cookies.set("hireveri_session", result.sessionId, sharedCookieOptions);
 
