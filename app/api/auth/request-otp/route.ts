@@ -2,18 +2,36 @@ import { NextResponse } from "next/server";
 import { requestOTP } from "@/lib/otp/otp.service";
 import { isOtpEmailDeliveryError } from "@/lib/email";
 
-function isMaxClientsError(error: unknown) {
+const transientDbErrorCodes = new Set([
+  "08000",
+  "08001",
+  "08006",
+  "53300",
+  "53400",
+  "57P03",
+]);
+
+const MAX_DB_RETRY_ATTEMPTS = 4;
+
+function isTransientDbCapacityError(error: unknown) {
+  const code = (error as { code?: string } | null)?.code;
   const message =
     error instanceof Error ? error.message : String(error ?? "");
+  const normalizedMessage = message.toLowerCase();
 
   return (
+    (code ? transientDbErrorCodes.has(code) : false) ||
     message.includes("MaxClientsInSessionMode") ||
-    message.toLowerCase().includes("max clients reached")
+    normalizedMessage.includes("max clients reached") ||
+    normalizedMessage.includes("too many clients") ||
+    normalizedMessage.includes("remaining connection slots") ||
+    normalizedMessage.includes("connection terminated due to connection timeout") ||
+    normalizedMessage.includes("timeout exceeded when trying to connect")
   );
 }
 
 function getRequestOtpErrorMessage(error: unknown) {
-  if (isMaxClientsError(error)) {
+  if (isTransientDbCapacityError(error)) {
     return "Too many login requests are being processed right now. Please try again in a few seconds.";
   }
 
@@ -28,19 +46,42 @@ function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function getRetryDelayMs(attempt: number) {
+  const baseDelayMs = 300 * 2 ** attempt;
+  const jitterMs = Math.floor(Math.random() * 200);
+
+  return Math.min(baseDelayMs + jitterMs, 2_500);
+}
+
 async function requestOtpWithRetry(params: Parameters<typeof requestOTP>[0]) {
-  try {
-    return await requestOTP(params);
-  } catch (error) {
-    if (!isMaxClientsError(error)) {
-      throw error;
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt < MAX_DB_RETRY_ATTEMPTS; attempt += 1) {
+    try {
+      return await requestOTP(params);
+    } catch (error) {
+      if (!isTransientDbCapacityError(error)) {
+        throw error;
+      }
+
+      lastError = error;
+
+      if (attempt === MAX_DB_RETRY_ATTEMPTS - 1) {
+        break;
+      }
+
+      const delayMs = getRetryDelayMs(attempt);
+
+      console.warn("REQUEST OTP RETRYING AFTER DB CAPACITY ERROR", {
+        attempt: attempt + 1,
+        delayMs,
+      });
+
+      await wait(delayMs);
     }
-
-    console.warn("REQUEST OTP RETRYING AFTER DB POOL SATURATION");
-    await wait(600);
-
-    return requestOTP(params);
   }
+
+  throw lastError;
 }
 
 /**

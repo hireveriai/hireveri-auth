@@ -3,7 +3,6 @@ import { Pool } from "pg";
 
 declare global {
   // Reuse a single pool per server process to avoid stacking connections.
-  // eslint-disable-next-line no-var
   var __hireveriAdminPool: Pool | undefined;
 }
 
@@ -20,7 +19,7 @@ export function getPool() {
         process.env.DB_IDLE_TIMEOUT_MS ?? 500
       ),
       connectionTimeoutMillis: Number(
-        process.env.DB_CONNECTION_TIMEOUT_MS ?? 1_500
+        process.env.DB_CONNECTION_TIMEOUT_MS ?? 5_000
       ),
       maxUses: Number(process.env.DB_MAX_USES ?? 7_500),
       maxLifetimeSeconds: Number(

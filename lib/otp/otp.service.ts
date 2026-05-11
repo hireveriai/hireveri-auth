@@ -1,5 +1,6 @@
 import { getPool } from "@/lib/db-admin";
 import { sendOtpEmail } from "@/lib/email";
+import type { PoolClient } from "pg";
 
 const OTP_EXPIRY_MINUTES = 5;
 
@@ -40,17 +41,18 @@ function isUniqueViolation(error: unknown) {
 }
 
 async function resolveIdentity(params: {
+  client: PoolClient;
   email?: string;
   phone?: string;
   intent: string;
 }) {
-  const pool = getPool();
+  const { client } = params;
   const normalizedEmail = normalizeEmail(params.email);
   const normalizedPhone = normalizePhone(params.phone);
   const identityIntent = normalizeIdentityIntent(params.intent);
 
   if (normalizedEmail) {
-    const existing = await pool.query(
+    const existing = await client.query(
       `
       SELECT identity_id
       FROM public.identity_users
@@ -68,7 +70,7 @@ async function resolveIdentity(params: {
   }
 
   if (!normalizedEmail && normalizedPhone) {
-    const existing = await pool.query(
+    const existing = await client.query(
       `
       SELECT identity_id
       FROM public.identity_users
@@ -86,7 +88,7 @@ async function resolveIdentity(params: {
   }
 
   try {
-    const created = await pool.query(
+    const created = await client.query(
       `
       INSERT INTO public.identity_users (
         email,
@@ -109,7 +111,7 @@ async function resolveIdentity(params: {
 
     // Compatibility with databases that still have the legacy global email
     // uniqueness constraint. The migration removes this fallback path.
-    const legacyIdentity = await pool.query(
+    const legacyIdentity = await client.query(
       `
       UPDATE public.identity_users
       SET
@@ -150,7 +152,7 @@ export async function requestOTP(params: {
 
   /* 1. Ensure an OTP identity exists without claiming a platform auth user */
   const pool = getPool();
-  const identityId = await resolveIdentity({ email, phone, intent });
+  const client = await pool.connect();
 
   /* 2. Generate OTP */
   const otp = generateOtp();
@@ -164,22 +166,33 @@ export async function requestOTP(params: {
     Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000
   );
 
-  /* 3. Store OTP before delivery so sent codes are always valid */
-  const otpRes = await pool.query(
-    `
-    INSERT INTO user_otps (
-      otp_code,
-      purpose,
-      expires_at,
-      identity_id,
-      intent,
-      used_at
-    )
-    VALUES ($1, $2, $3, $4, $5, NULL)
-    RETURNING otp_id
-    `,
-    [otp, purpose, expiresAt, identityId, normalizeOtpIntent(intent)]
-  );
+  let identityId = "";
+  let otpId = "";
+
+  try {
+    identityId = await resolveIdentity({ client, email, phone, intent });
+
+    /* 3. Store OTP before delivery so sent codes are always valid */
+    const otpRes = await client.query(
+      `
+      INSERT INTO user_otps (
+        otp_code,
+        purpose,
+        expires_at,
+        identity_id,
+        intent,
+        used_at
+      )
+      VALUES ($1, $2, $3, $4, $5, NULL)
+      RETURNING otp_id
+      `,
+      [otp, purpose, expiresAt, identityId, normalizeOtpIntent(intent)]
+    );
+
+    otpId = otpRes.rows[0].otp_id;
+  } finally {
+    client.release();
+  }
 
   // Delivery is provider-agnostic; the mailer decides between Resend and SMTP.
   if (email) {
@@ -188,7 +201,7 @@ export async function requestOTP(params: {
 
   return {
     identityId, // ✅ CRITICAL FIX
-    otpId: otpRes.rows[0].otp_id,
+    otpId,
     expiresIn: OTP_EXPIRY_MINUTES * 60
   };
 }
