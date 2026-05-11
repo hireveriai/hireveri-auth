@@ -4,6 +4,7 @@ type RecruiterJwtPayload = {
   userId: string;
   orgId: string;
   role: "recruiter";
+  email?: string;
 };
 
 type RecruiterUser = {
@@ -48,7 +49,7 @@ function signJwt(payload: RecruiterJwtPayload) {
   return `${signingInput}.${signature}`;
 }
 
-export function signRecruiterJwt(user: RecruiterUser) {
+export function signRecruiterJwt(user: RecruiterUser, email?: string) {
   if (!user.org_id) {
     throw new Error("Recruiter organization is missing");
   }
@@ -57,5 +58,6 @@ export function signRecruiterJwt(user: RecruiterUser) {
     userId: user.id,
     orgId: user.org_id,
     role: "recruiter",
+    ...(email ? { email } : {}),
   });
 }

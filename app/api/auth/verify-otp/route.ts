@@ -42,7 +42,7 @@ function buildRecruiterAppUrl(params: {
       nextUrl.searchParams.set("userId", userId);
     }
 
-    if (token && !sessionId) {
+    if (token) {
       handoffUrl.searchParams.set("token", token);
     }
 
@@ -209,7 +209,7 @@ export async function POST(req: Request) {
 
       if (user) {
         try {
-          token = signRecruiterJwt(user);
+          token = signRecruiterJwt(user, normalizedEmail);
         } catch (jwtError) {
           console.warn(
             "VERIFY OTP JWT WARNING: falling back to recruiter session handoff",
