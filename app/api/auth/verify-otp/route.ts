@@ -22,7 +22,7 @@ const AUTH_COOKIE_NAMES = [
 ];
 const AUTH_COOKIE_DOMAINS = [".hireveri.com", ".verihireai.work"];
 const USE_RECRUITER_QUERY_HANDOFF =
-  process.env.RECRUITER_QUERY_HANDOFF === "true";
+  process.env.RECRUITER_QUERY_HANDOFF !== "false";
 
 function buildRecruiterAppUrl(params: {
   organizationId?: string | null;
