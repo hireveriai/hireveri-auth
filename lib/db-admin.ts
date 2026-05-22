@@ -6,6 +6,44 @@ declare global {
   var __hireveriAdminPool: Pool | undefined;
 }
 
+function shouldForceTransactionPooler() {
+  return process.env.DB_POOL_MODE !== "session";
+}
+
+function normalizeConnectionString(rawConnectionString: string) {
+  const trimmed = rawConnectionString.trim().replace(/^"|"$/g, "");
+
+  try {
+    const url = new URL(trimmed);
+
+    if (
+      shouldForceTransactionPooler() &&
+      url.hostname.endsWith(".pooler.supabase.com") &&
+      (!url.port || url.port === "5432")
+    ) {
+      url.port = "6543";
+    }
+
+    return url.toString();
+  } catch {
+    return trimmed;
+  }
+}
+
+function getPoolPort() {
+  const configuredPort = Number(process.env.DB_PORT ?? 5432);
+
+  if (
+    shouldForceTransactionPooler() &&
+    process.env.DB_HOST?.endsWith(".pooler.supabase.com") &&
+    configuredPort === 5432
+  ) {
+    return 6543;
+  }
+
+  return configuredPort;
+}
+
 export function getPool() {
   if (!global.__hireveriAdminPool) {
     const connectionString =
@@ -17,12 +55,12 @@ export function getPool() {
 
     global.__hireveriAdminPool = new Pool({
       ...(connectionString
-        ? { connectionString }
+        ? { connectionString: normalizeConnectionString(connectionString) }
         : {
             user: process.env.DB_USER!,
             password: process.env.DB_PASSWORD!,
             host: process.env.DB_HOST!,
-            port: Number(process.env.DB_PORT ?? 5432),
+            port: getPoolPort(),
             database: process.env.DB_NAME!,
           }),
       max: Number(process.env.DB_POOL_MAX ?? 1),

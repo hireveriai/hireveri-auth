@@ -2,6 +2,18 @@ import { NextResponse } from "next/server";
 import { requestOTP } from "@/lib/otp/otp.service";
 import { isOtpEmailDeliveryError } from "@/lib/email";
 
+type RequestOtpParams = Parameters<typeof requestOTP>[0];
+type RequestOtpResult = Awaited<ReturnType<typeof requestOTP>>;
+
+declare global {
+  var __hireveriOtpRequestInFlight:
+    | Map<string, Promise<RequestOtpResult>>
+    | undefined;
+  var __hireveriOtpRequestCache:
+    | Map<string, { expiresAt: number; result: RequestOtpResult }>
+    | undefined;
+}
+
 const transientDbErrorCodes = new Set([
   "08000",
   "08001",
@@ -12,6 +24,65 @@ const transientDbErrorCodes = new Set([
 ]);
 
 const MAX_DB_RETRY_ATTEMPTS = 4;
+const OTP_REQUEST_CACHE_TTL_MS = 20_000;
+const OTP_REQUEST_CACHE_MAX_ENTRIES = 500;
+
+function getInFlightOtpRequests() {
+  if (!global.__hireveriOtpRequestInFlight) {
+    global.__hireveriOtpRequestInFlight = new Map();
+  }
+
+  return global.__hireveriOtpRequestInFlight;
+}
+
+function getOtpRequestCache() {
+  if (!global.__hireveriOtpRequestCache) {
+    global.__hireveriOtpRequestCache = new Map();
+  }
+
+  return global.__hireveriOtpRequestCache;
+}
+
+function getRequestKey(params: RequestOtpParams) {
+  return [
+    params.intent,
+    params.purpose,
+    params.email?.toLowerCase().trim() ?? "",
+    params.phone?.trim() ?? "",
+  ].join(":");
+}
+
+function getCachedOtpRequest(key: string) {
+  const cache = getOtpRequestCache();
+  const cached = cache.get(key);
+
+  if (!cached) {
+    return null;
+  }
+
+  if (cached.expiresAt <= Date.now()) {
+    cache.delete(key);
+    return null;
+  }
+
+  return cached.result;
+}
+
+function setCachedOtpRequest(key: string, result: RequestOtpResult) {
+  const cache = getOtpRequestCache();
+
+  if (cache.size >= OTP_REQUEST_CACHE_MAX_ENTRIES) {
+    const firstKey = cache.keys().next().value;
+    if (firstKey) {
+      cache.delete(firstKey);
+    }
+  }
+
+  cache.set(key, {
+    expiresAt: Date.now() + OTP_REQUEST_CACHE_TTL_MS,
+    result,
+  });
+}
 
 function isTransientDbCapacityError(error: unknown) {
   const code = (error as { code?: string } | null)?.code;
@@ -53,7 +124,7 @@ function getRetryDelayMs(attempt: number) {
   return Math.min(baseDelayMs + jitterMs, 2_500);
 }
 
-async function requestOtpWithRetry(params: Parameters<typeof requestOTP>[0]) {
+async function requestOtpWithRetry(params: RequestOtpParams) {
   let lastError: unknown;
 
   for (let attempt = 0; attempt < MAX_DB_RETRY_ATTEMPTS; attempt += 1) {
@@ -82,6 +153,33 @@ async function requestOtpWithRetry(params: Parameters<typeof requestOTP>[0]) {
   }
 
   throw lastError;
+}
+
+async function requestOtpOnce(params: RequestOtpParams) {
+  const key = getRequestKey(params);
+  const cached = getCachedOtpRequest(key);
+
+  if (cached) {
+    return cached;
+  }
+
+  const inFlight = getInFlightOtpRequests();
+  const existing = inFlight.get(key);
+
+  if (existing) {
+    return existing;
+  }
+
+  const promise = requestOtpWithRetry(params);
+  inFlight.set(key, promise);
+
+  try {
+    const result = await promise;
+    setCachedOtpRequest(key, result);
+    return result;
+  } finally {
+    inFlight.delete(key);
+  }
 }
 
 /**
@@ -122,7 +220,7 @@ export async function POST(req: Request) {
     }
 
     // 🔐 Issue OTP (DB-owned)
-    const result = await requestOtpWithRetry({
+    const result = await requestOtpOnce({
       email,
       intent,
       purpose: "LOGIN",
