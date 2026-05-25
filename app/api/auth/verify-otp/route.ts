@@ -24,6 +24,96 @@ const AUTH_COOKIE_DOMAINS = [".hireveri.com", ".verihireai.work"];
 const USE_RECRUITER_QUERY_HANDOFF =
   process.env.RECRUITER_QUERY_HANDOFF !== "false";
 
+type LegalConsentPayload = {
+  acceptedAt?: string;
+  termsVersion?: string;
+  privacyVersion?: string;
+};
+
+function normalizeLegalConsent(value: unknown): LegalConsentPayload | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const consent = value as LegalConsentPayload;
+  const acceptedAt = typeof consent.acceptedAt === "string" ? consent.acceptedAt : null;
+  const termsVersion = typeof consent.termsVersion === "string" ? consent.termsVersion.trim() : "";
+  const privacyVersion = typeof consent.privacyVersion === "string" ? consent.privacyVersion.trim() : "";
+
+  if (!acceptedAt || Number.isNaN(new Date(acceptedAt).getTime()) || !termsVersion || !privacyVersion) {
+    return null;
+  }
+
+  return {
+    acceptedAt,
+    termsVersion,
+    privacyVersion,
+  };
+}
+
+async function recordLegalConsent(params: {
+  pool: ReturnType<typeof getPool>;
+  identityId: string;
+  email: string;
+  consent: LegalConsentPayload | null;
+  ipAddress: string | null;
+  userAgent: string | null;
+}) {
+  if (!params.consent) {
+    return;
+  }
+
+  try {
+    const tableCheck = await params.pool.query(
+      `select to_regclass('public.auth_legal_acceptances') as table_name`
+    );
+
+    if (!tableCheck.rows[0]?.table_name) {
+      return;
+    }
+
+    await params.pool.query(
+      `
+      insert into public.auth_legal_acceptances (
+        identity_id,
+        email_normalized,
+        accepted_at,
+        terms_version,
+        privacy_version,
+        ip_address,
+        user_agent
+      )
+      values (
+        $1::uuid,
+        $2::text,
+        $3::timestamptz,
+        $4::text,
+        $5::text,
+        $6::text,
+        $7::text
+      )
+      on conflict (identity_id, terms_version, privacy_version) do update
+        set
+          accepted_at = excluded.accepted_at,
+          email_normalized = excluded.email_normalized,
+          ip_address = excluded.ip_address,
+          user_agent = excluded.user_agent
+      `,
+      [
+        params.identityId,
+        params.email,
+        params.consent.acceptedAt,
+        params.consent.termsVersion,
+        params.consent.privacyVersion,
+        params.ipAddress,
+        params.userAgent,
+      ]
+    );
+  } catch (error) {
+    console.warn("LEGAL CONSENT RECORD WARNING:", error);
+  }
+}
+
 function buildRecruiterAppUrl(params: {
   organizationId?: string | null;
   userId?: string | null;
@@ -112,13 +202,14 @@ function appendRecruiterIdentityToPath(
 
 export async function POST(req: Request) {
   try {
-    const { identityId, otp, email, next } = await req.json();
+    const { identityId, otp, email, next, consent } = await req.json();
 
     if (!identityId || !otp || !email) {
       return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
 
     const normalizedEmail = String(email).toLowerCase().trim();
+    const legalConsent = normalizeLegalConsent(consent);
     const safeRecruiterNextPath = getSafeRecruiterNextPath(next);
     const userAgent = req.headers.get("user-agent");
     const ipAddress =
@@ -330,6 +421,15 @@ export async function POST(req: Request) {
 
       return response;
     }
+
+    await recordLegalConsent({
+      pool,
+      identityId,
+      email: normalizedEmail,
+      consent: legalConsent,
+      ipAddress,
+      userAgent,
+    });
 
     response.cookies.set("hireveri_session", result.sessionId, sharedCookieOptions);
 

@@ -3,6 +3,9 @@
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 
+import LegalDocumentModal from "@/components/LegalDocumentModal";
+import { legalDocuments, PRIVACY_VERSION, TERMS_VERSION, type LegalDocument } from "@/lib/legal-documents";
+
 type VerifyOtpResponse = {
   error?: string;
   nextRoute?: string;
@@ -22,6 +25,7 @@ export default function VerifyOtpClient() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [timer, setTimer] = useState(30);
+  const [openLegalDocument, setOpenLegalDocument] = useState<LegalDocument["id"] | null>(null);
 
   useEffect(() => {
     if (timer <= 0) {
@@ -68,6 +72,11 @@ export default function VerifyOtpClient() {
         otp,
         email,
         next,
+        consent: {
+          acceptedAt: new Date().toISOString(),
+          termsVersion: TERMS_VERSION,
+          privacyVersion: PRIVACY_VERSION,
+        },
       }),
     });
 
@@ -167,13 +176,21 @@ export default function VerifyOtpClient() {
             />
             <span>
               I agree to HireVeri&apos;s{" "}
-              <a href="/terms" target="_blank" className="underline hover:text-white">
+              <button
+                type="button"
+                onClick={() => setOpenLegalDocument("terms")}
+                className="underline transition hover:text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/40"
+              >
                 Terms of Service
-              </a>{" "}
+              </button>{" "}
               and{" "}
-              <a href="/privacy" target="_blank" className="underline hover:text-white">
+              <button
+                type="button"
+                onClick={() => setOpenLegalDocument("privacy")}
+                className="underline transition hover:text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/40"
+              >
                 Privacy Policy
-              </a>
+              </button>
               .
             </span>
           </label>
@@ -191,6 +208,11 @@ export default function VerifyOtpClient() {
           </button>
         </form>
       </div>
+
+      <LegalDocumentModal
+        document={openLegalDocument ? legalDocuments[openLegalDocument] : null}
+        onClose={() => setOpenLegalDocument(null)}
+      />
     </div>
   );
 }
