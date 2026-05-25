@@ -18,6 +18,7 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export default function RecruiterAccessPage() {
   const router = useRouter();
   const intent: RecruiterIntent = "recruiter_login";
+  const [next, setNext] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,6 +27,7 @@ export default function RecruiterAccessPage() {
     document.title = "Recruiter Login | HireVeri";
 
     sessionStorage.removeItem("hireveri_recruiter_email");
+    setNext(new URL(window.location.href).searchParams.get("next"));
   }, []);
 
   const normalizedEmail = email.trim();
@@ -82,11 +84,16 @@ export default function RecruiterAccessPage() {
       return;
     }
 
-    router.push(
-      `/verify-otp?identityId=${data.identityId}&email=${encodeURIComponent(
-        normalizedEmail
-      )}&intent=${intent}`
-    );
+    const verifyUrl = new URL("/verify-otp", window.location.origin);
+    verifyUrl.searchParams.set("identityId", data.identityId);
+    verifyUrl.searchParams.set("email", normalizedEmail);
+    verifyUrl.searchParams.set("intent", intent);
+
+    if (next) {
+      verifyUrl.searchParams.set("next", next);
+    }
+
+    router.push(`${verifyUrl.pathname}${verifyUrl.search}`);
   }
 
   return (

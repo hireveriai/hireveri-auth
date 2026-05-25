@@ -18,13 +18,34 @@ const recruiterAuthAccessUrl = getRecruiterAccessUrl(
     process.env.NEXT_PUBLIC_AUTH_APP_URL
 );
 
+function getSafeRecruiterNextPath(value: string | null | undefined) {
+  if (!value) {
+    return "/";
+  }
+
+  try {
+    const base = new URL(recruiterAppUrl);
+    const parsed = new URL(value, base);
+
+    if (parsed.origin !== base.origin) {
+      return "/";
+    }
+
+    return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+  } catch {
+    return "/";
+  }
+}
+
 function buildRecruiterAppUrl(params: {
   organizationId?: string | null;
   userId?: string | null;
+  nextPath?: string | null;
 }) {
   const { organizationId, userId } = params;
+  const safeNextPath = getSafeRecruiterNextPath(params.nextPath);
 
-  if (recruiterAppUrlTemplate) {
+  if (recruiterAppUrlTemplate && safeNextPath === "/") {
     const templatedUrl = recruiterAppUrlTemplate
       .replaceAll("{organizationId}", organizationId ?? "")
       .replaceAll("{userId}", userId ?? "");
@@ -38,7 +59,7 @@ function buildRecruiterAppUrl(params: {
     }
   }
 
-  const url = new URL(recruiterAppUrl);
+  const url = new URL(safeNextPath, recruiterAppUrl);
 
   if (organizationId) {
     url.searchParams.set("organizationId", organizationId);
@@ -138,6 +159,7 @@ function usePoolOptions<T>(url: string) {
 }
 
 export default function RecruiterOnboardingPage() {
+  const [nextPath, setNextPath] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [emailLoading, setEmailLoading] = useState(true);
   const [firstName, setFirstName] = useState("");
@@ -164,6 +186,8 @@ export default function RecruiterOnboardingPage() {
   );
 
   useEffect(() => {
+    setNextPath(new URL(window.location.href).searchParams.get("next"));
+
     async function loadEmail() {
       try {
         const res = await fetch("/api/auth/me");
@@ -268,6 +292,7 @@ export default function RecruiterOnboardingPage() {
               phoneCode: selectedCountry.phoneCode,
             }
           : null,
+        next: nextPath,
       }),
     });
 
@@ -284,6 +309,7 @@ export default function RecruiterOnboardingPage() {
       buildRecruiterAppUrl({
         organizationId: data?.result?.organization_id,
         userId: data?.result?.user_id,
+        nextPath,
       });
   }
 

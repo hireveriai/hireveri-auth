@@ -10,10 +10,12 @@ const recruiterAppTemplate = process.env.RECRUITER_APP_URL_TEMPLATE;
 function buildRecruiterAppUrl(params: {
   organizationId?: string | null;
   userId?: string | null;
+  nextPath?: string | null;
 }) {
   const { organizationId, userId } = params;
+  const safeNextPath = getSafeRecruiterNextPath(params.nextPath);
 
-  if (recruiterAppTemplate) {
+  if (recruiterAppTemplate && safeNextPath === "/") {
     const templatedUrl = recruiterAppTemplate
       .replaceAll("{organizationId}", organizationId ?? "")
       .replaceAll("{userId}", userId ?? "");
@@ -27,7 +29,7 @@ function buildRecruiterAppUrl(params: {
     }
   }
 
-  const url = new URL(recruiterApp);
+  const url = new URL(safeNextPath, recruiterApp);
 
   if (organizationId) {
     url.searchParams.set("organizationId", organizationId);
@@ -40,6 +42,25 @@ function buildRecruiterAppUrl(params: {
   return url.toString();
 }
 
+function getSafeRecruiterNextPath(value: unknown) {
+  if (typeof value !== "string" || !value.trim()) {
+    return "/";
+  }
+
+  try {
+    const base = new URL(recruiterApp);
+    const parsed = new URL(value, base);
+
+    if (parsed.origin !== base.origin) {
+      return "/";
+    }
+
+    return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+  } catch {
+    return "/";
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const { identity_id } = await requireSession();
@@ -49,6 +70,7 @@ export async function POST(req: Request) {
       companyName,
       recruiterRole,
       recruiterRoleName,
+      next,
     } = await req.json();
 
     if (!firstName || !lastName || !companyName) {
@@ -139,6 +161,7 @@ export async function POST(req: Request) {
       nextRoute: buildRecruiterAppUrl({
         organizationId: result?.organization_id,
         userId: result?.user_id,
+        nextPath: getSafeRecruiterNextPath(next),
       }),
     });
   } catch (err) {

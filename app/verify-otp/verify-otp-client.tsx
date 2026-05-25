@@ -15,6 +15,7 @@ export default function VerifyOtpClient() {
   const identityId = searchParams.get("identityId");
   const email = searchParams.get("email");
   const intent = searchParams.get("intent");
+  const next = searchParams.get("next");
 
   const [otp, setOtp] = useState("");
   const [agreed, setAgreed] = useState(false);
@@ -66,6 +67,7 @@ export default function VerifyOtpClient() {
         identityId,
         otp,
         email,
+        next,
       }),
     });
 

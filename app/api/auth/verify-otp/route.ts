@@ -29,20 +29,17 @@ function buildRecruiterAppUrl(params: {
   userId?: string | null;
   token?: string | null;
   sessionId?: string | null;
+  nextPath?: string | null;
 }) {
   const { organizationId, userId, token, sessionId } = params;
+  const nextPath = appendRecruiterIdentityToPath(
+    params.nextPath,
+    organizationId,
+    userId
+  );
 
   if (USE_RECRUITER_QUERY_HANDOFF && (token || sessionId)) {
     const handoffUrl = new URL("/api/auth/handoff", recruiterApp);
-    const nextUrl = new URL("/", recruiterApp);
-
-    if (organizationId) {
-      nextUrl.searchParams.set("organizationId", organizationId);
-    }
-
-    if (userId) {
-      nextUrl.searchParams.set("userId", userId);
-    }
 
     if (token) {
       handoffUrl.searchParams.set("token", token);
@@ -52,11 +49,11 @@ function buildRecruiterAppUrl(params: {
       handoffUrl.searchParams.set("session", sessionId);
     }
 
-    handoffUrl.searchParams.set("next", `${nextUrl.pathname}${nextUrl.search}`);
+    handoffUrl.searchParams.set("next", nextPath);
     return handoffUrl.toString();
   }
 
-  if (recruiterAppTemplate) {
+  if (recruiterAppTemplate && (!params.nextPath || params.nextPath === "/")) {
     const templatedUrl = recruiterAppTemplate
       .replaceAll("{organizationId}", organizationId ?? "")
       .replaceAll("{userId}", userId ?? "");
@@ -70,7 +67,37 @@ function buildRecruiterAppUrl(params: {
     }
   }
 
-  const url = new URL(recruiterApp);
+  const url = new URL(nextPath, recruiterApp);
+
+  return url.toString();
+}
+
+function getSafeRecruiterNextPath(value: unknown) {
+  if (typeof value !== "string" || !value.trim()) {
+    return "/";
+  }
+
+  try {
+    const base = new URL(recruiterApp);
+    const parsed = new URL(value, base);
+
+    if (parsed.origin !== base.origin) {
+      return "/";
+    }
+
+    return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+  } catch {
+    return "/";
+  }
+}
+
+function appendRecruiterIdentityToPath(
+  value: string | null | undefined,
+  organizationId?: string | null,
+  userId?: string | null
+) {
+  const base = new URL(recruiterApp);
+  const url = new URL(value || "/", base);
 
   if (organizationId) {
     url.searchParams.set("organizationId", organizationId);
@@ -80,18 +107,19 @@ function buildRecruiterAppUrl(params: {
     url.searchParams.set("userId", userId);
   }
 
-  return url.toString();
+  return `${url.pathname}${url.search}${url.hash}`;
 }
 
 export async function POST(req: Request) {
   try {
-    const { identityId, otp, email } = await req.json();
+    const { identityId, otp, email, next } = await req.json();
 
     if (!identityId || !otp || !email) {
       return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
 
     const normalizedEmail = String(email).toLowerCase().trim();
+    const safeRecruiterNextPath = getSafeRecruiterNextPath(next);
     const userAgent = req.headers.get("user-agent");
     const ipAddress =
       req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null;
@@ -232,11 +260,14 @@ export async function POST(req: Request) {
           userId: user.id,
           token,
           sessionId: result.sessionId,
+          nextPath: safeRecruiterNextPath,
         });
       } else {
-        nextRoute = getRecruiterOnboardingUrl(
+        const onboardingUrl = new URL(getRecruiterOnboardingUrl(
           process.env.RECRUITER_AUTH_APP_URL || process.env.AUTH_APP_URL
-        );
+        ));
+        onboardingUrl.searchParams.set("next", safeRecruiterNextPath);
+        nextRoute = onboardingUrl.toString();
       }
     } else if (result.intent === "candidate_practice") {
       const candidateRes = await pool.query(
