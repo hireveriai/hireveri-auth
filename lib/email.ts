@@ -3,6 +3,14 @@ import nodemailer from "nodemailer";
 const defaultFrom = "HireVeri <no-reply@mail.hireveri.com>";
 const resendApiUrl = "https://api.resend.com/emails";
 
+type EmailMessage = {
+  to: string;
+  subject: string;
+  text: string;
+  html: string;
+  idempotencyKey?: string;
+};
+
 export class OtpEmailDeliveryError extends Error {
   public readonly publicMessage: string;
 
@@ -61,7 +69,7 @@ function getTransporter() {
   });
 }
 
-async function sendViaResend(to: string, otp: string) {
+async function sendViaResend(message: EmailMessage) {
   const apiKey = process.env.RESEND_API_KEY?.trim();
 
   if (!apiKey) {
@@ -75,20 +83,14 @@ async function sendViaResend(to: string, otp: string) {
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
+      ...(message.idempotencyKey ? { "Idempotency-Key": message.idempotencyKey } : {}),
     },
     body: JSON.stringify({
       from,
-      to: [to],
-      subject: "Your HireVeri OTP",
-      text: `Your HireVeri OTP is ${otp}. It is valid for 5 minutes.`,
-      html: `
-        <div style="font-family: Arial, sans-serif">
-          <h2>HireVeri Login</h2>
-          <p>Your OTP is:</p>
-          <h1 style="letter-spacing:4px">${otp}</h1>
-          <p>This code is valid for 5 minutes.</p>
-        </div>
-      `,
+      to: [message.to],
+      subject: message.subject,
+      text: message.text,
+      html: message.html,
     }),
   });
 
@@ -100,15 +102,15 @@ async function sendViaResend(to: string, otp: string) {
   return true;
 }
 
-export async function sendOtpEmail(to: string, otp: string) {
+export async function sendEmail(message: EmailMessage) {
   let resendError: unknown;
   let sentWithResend = false;
 
   try {
-    sentWithResend = await sendViaResend(to, otp);
+    sentWithResend = await sendViaResend(message);
   } catch (error) {
     resendError = error;
-    console.warn("OTP RESEND DELIVERY FAILED; falling back to SMTP if configured.", error);
+    console.warn("RESEND DELIVERY FAILED; falling back to SMTP if configured.", error);
   }
 
   if (sentWithResend) {
@@ -130,7 +132,7 @@ export async function sendOtpEmail(to: string, otp: string) {
     }
 
     console.warn(
-      "EMAIL DELIVERY SKIPPED: configure RESEND_API_KEY or SMTP_HOST to send OTP emails."
+      "EMAIL DELIVERY SKIPPED: configure RESEND_API_KEY or SMTP_HOST to send emails."
     );
     return;
   }
@@ -138,21 +140,30 @@ export async function sendOtpEmail(to: string, otp: string) {
   try {
     await transporter.sendMail({
       from: getConfiguredFrom(),
-      to,
-      subject: "Your HireVeri OTP",
-      text: `Your HireVeri OTP is ${otp}. It is valid for 5 minutes.`,
-      html: `
-        <div style="font-family: Arial, sans-serif">
-          <h2>HireVeri Login</h2>
-          <p>Your OTP is:</p>
-          <h1 style="letter-spacing:4px">${otp}</h1>
-          <p>This code is valid for 5 minutes.</p>
-        </div>
-      `,
+      to: message.to,
+      subject: message.subject,
+      text: message.text,
+      html: message.html,
     });
   } catch (error) {
     throw new OtpEmailDeliveryError(
       `SMTP send failed: ${error instanceof Error ? error.message : String(error)}`
     );
   }
+}
+
+export async function sendOtpEmail(to: string, otp: string) {
+  await sendEmail({
+    to,
+    subject: "Your HireVeri OTP",
+    text: `Your HireVeri OTP is ${otp}. It is valid for 5 minutes.`,
+    html: `
+      <div style="font-family: Arial, sans-serif">
+        <h2>HireVeri Login</h2>
+        <p>Your OTP is:</p>
+        <h1 style="letter-spacing:4px">${otp}</h1>
+        <p>This code is valid for 5 minutes.</p>
+      </div>
+    `,
+  });
 }
