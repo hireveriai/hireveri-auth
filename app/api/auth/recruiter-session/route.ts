@@ -155,6 +155,9 @@ async function queryRecruiterSession(sessionId: string): Promise<RecruiterSessio
         ON au.email_normalized = si.email_normalized
       JOIN public.organization_memberships om
         ON om.auth_user_id = au.id
+      JOIN public.organizations o
+        ON o.organization_id = om.org_id
+       AND coalesce(o.is_active, true) = true
       LEFT JOIN public.users u
         ON (
           u.user_id = om.legacy_user_id
@@ -177,6 +180,9 @@ async function queryRecruiterSession(sessionId: string): Promise<RecruiterSessio
       FROM session_identity si
       JOIN public.users u
         ON lower(u.email) = si.email_normalized
+      JOIN public.organizations o
+        ON o.organization_id = u.organization_id
+       AND coalesce(o.is_active, true) = true
       WHERE u.role IN ('RECRUITER', 'ORG_OWNER', 'ADMIN')
         AND u.is_active = true
     )

@@ -4,7 +4,6 @@ import {
   getCandidateOnboardingUrl,
   getRecruiterOnboardingUrl,
 } from "@/lib/app-urls";
-import { signRecruiterJwt } from "@/lib/auth/jwt";
 import { getSharedCookieOptions } from "@/lib/auth/shared-cookie";
 
 const candidateApp = process.env.CANDIDATE_APP_URL!;
@@ -22,7 +21,7 @@ const AUTH_COOKIE_NAMES = [
 ];
 const AUTH_COOKIE_DOMAINS = [".hireveri.com", ".verihireai.work"];
 const USE_RECRUITER_QUERY_HANDOFF =
-  process.env.RECRUITER_QUERY_HANDOFF !== "false";
+  process.env.RECRUITER_QUERY_HANDOFF === "true";
 
 type LegalConsentPayload = {
   acceptedAt?: string;
@@ -280,8 +279,6 @@ export async function POST(req: Request) {
     }
 
     let nextRoute = result.redirectUrl;
-    let token: string | undefined;
-
     if (result.intent === "recruiter_login") {
       const recruiterRes = await pool.query(
         `
@@ -337,19 +334,9 @@ export async function POST(req: Request) {
       const user = recruiterRes.rows[0];
 
       if (user) {
-        try {
-          token = signRecruiterJwt(user, normalizedEmail);
-        } catch (jwtError) {
-          console.warn(
-            "VERIFY OTP JWT WARNING: falling back to recruiter session handoff",
-            jwtError
-          );
-        }
-
         nextRoute = buildRecruiterAppUrl({
           organizationId: user.org_id,
           userId: user.id,
-          token,
           sessionId: result.sessionId,
           nextPath: safeRecruiterNextPath,
         });
@@ -387,7 +374,6 @@ export async function POST(req: Request) {
     const response = NextResponse.json({
       success: true,
       nextRoute,
-      ...(token ? { token } : {}),
     });
 
     const sharedCookieOptions = getSharedCookieOptions(req);
@@ -414,11 +400,6 @@ export async function POST(req: Request) {
         sharedCookieOptions
       );
 
-      if (token) {
-        response.cookies.set("authToken", token, sharedCookieOptions);
-        response.cookies.set("accessToken", token, sharedCookieOptions);
-      }
-
       return response;
     }
 
@@ -432,15 +413,10 @@ export async function POST(req: Request) {
     });
 
     response.cookies.set("hireveri_session", result.sessionId, sharedCookieOptions);
-
-    if (token) {
-      response.cookies.set("authToken", token, sharedCookieOptions);
-    } else {
-      response.cookies.set("authToken", "", {
-        ...sharedCookieOptions,
-        maxAge: 0,
-      });
-    }
+    response.cookies.set("authToken", "", {
+      ...sharedCookieOptions,
+      maxAge: 0,
+    });
 
     return response;
   } catch (error) {

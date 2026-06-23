@@ -249,6 +249,9 @@ as $function$
     join public.organization_memberships om
       on om.auth_user_id = am.auth_user_id
      and om.role = 'RECRUITER'
+    join public.organizations o
+      on o.organization_id = om.org_id
+     and coalesce(o.is_active, true) = true
     left join public.users u
       on (
         u.user_id = om.legacy_user_id
@@ -272,6 +275,9 @@ as $function$
       u.created_at
     from public.users u
     cross join normalized n
+    join public.organizations o
+      on o.organization_id = u.organization_id
+     and coalesce(o.is_active, true) = true
     left join public.recruiter_profiles rp
       on rp.recruiter_id = u.user_id
     where u.role = 'RECRUITER'
@@ -638,6 +644,9 @@ begin
   select u.user_id, om.org_id
   into v_existing_user_id, v_existing_org_id
   from public.organization_memberships om
+  join public.organizations o
+    on o.organization_id = om.org_id
+   and coalesce(o.is_active, true) = true
   left join public.users u
     on (
       u.user_id = om.legacy_user_id

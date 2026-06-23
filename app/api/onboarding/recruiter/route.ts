@@ -161,6 +161,9 @@ async function hasExistingRecruiterWorkspace(pool: ReturnType<typeof getPool>, e
       FROM public.auth_users au
       JOIN public.organization_memberships om
         ON om.auth_user_id = au.id
+      JOIN public.organizations o
+        ON o.organization_id = om.org_id
+       AND coalesce(o.is_active, true) = true
       WHERE au.email_normalized = $1::text
         AND om.role IN ('RECRUITER', 'ORG_OWNER', 'ADMIN', 'INTERVIEWER')
       LIMIT 1
@@ -168,6 +171,9 @@ async function hasExistingRecruiterWorkspace(pool: ReturnType<typeof getPool>, e
     legacy_match AS (
       SELECT 1
       FROM public.users u
+      JOIN public.organizations o
+        ON o.organization_id = u.organization_id
+       AND coalesce(o.is_active, true) = true
       WHERE lower(u.email) = $1::text
         AND u.role IN ('RECRUITER', 'ORG_OWNER', 'ADMIN')
         AND u.is_active = true
@@ -185,6 +191,44 @@ async function hasExistingRecruiterWorkspace(pool: ReturnType<typeof getPool>, e
   );
 
   return existingRes.rows.length > 0;
+}
+
+async function pruneOrphanedRecruiterWorkspaceRefs(pool: ReturnType<typeof getPool>, email: string) {
+  await pool.query(
+    `
+    WITH target_auth AS (
+      SELECT id
+      FROM public.auth_users
+      WHERE email_normalized = $1::text
+    )
+    DELETE FROM public.organization_memberships om
+    USING target_auth ta
+    WHERE om.auth_user_id = ta.id
+      AND om.role IN ('RECRUITER', 'ORG_OWNER', 'ADMIN', 'INTERVIEWER')
+      AND NOT EXISTS (
+        SELECT 1
+        FROM public.organizations o
+        WHERE o.organization_id = om.org_id
+      )
+    `,
+    [email]
+  );
+
+  await pool.query(
+    `
+    UPDATE public.users u
+    SET is_active = false
+    WHERE lower(u.email) = $1::text
+      AND u.role IN ('RECRUITER', 'ORG_OWNER', 'ADMIN')
+      AND u.is_active = true
+      AND NOT EXISTS (
+        SELECT 1
+        FROM public.organizations o
+        WHERE o.organization_id = u.organization_id
+      )
+    `,
+    [email]
+  );
 }
 
 function shouldSendOrganizationSignupAlert(result: Record<string, unknown> | null, hadExistingWorkspace: boolean) {
@@ -245,6 +289,7 @@ export async function POST(req: Request) {
 
     const fullName = `${firstName} ${lastName}`.trim();
     let recruiterRoleId: number | null = null;
+    await pruneOrphanedRecruiterWorkspaceRefs(pool, email);
     const hadExistingWorkspace = await hasExistingRecruiterWorkspace(pool, email);
 
     if (typeof recruiterRole === "string" && recruiterRole.trim()) {
