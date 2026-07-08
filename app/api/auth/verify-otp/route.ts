@@ -199,6 +199,54 @@ function appendRecruiterIdentityToPath(
   return `${url.pathname}${url.search}${url.hash}`;
 }
 
+function getPracticeCandidateDashboardUrl() {
+  if (process.env.PRACTICE_CANDIDATE_DASHBOARD_URL) {
+    return process.env.PRACTICE_CANDIDATE_DASHBOARD_URL;
+  }
+
+  return new URL("/dashboard", practiceCandidateApp).toString();
+}
+
+async function isPracticeCandidateOnboarded(params: {
+  pool: ReturnType<typeof getPool>;
+  identityId: string;
+}) {
+  const result = await params.pool.query(
+    `
+    select
+      c.candidate_id,
+      c.first_name,
+      c.last_name,
+      c.primary_role_id,
+      c.experience_level_code,
+      exists (
+        select 1
+        from public.candidate_primary_skills cps
+        where cps.candidate_id = c.candidate_id
+      ) as has_primary_skills
+    from public.candidate_identity_links cil
+    join public.candidates c
+      on c.candidate_id = cil.candidate_id
+    where cil.identity_id = $1::uuid
+      and cil.purpose = 'practice'
+    order by cil.created_at desc
+    limit 1
+    `,
+    [params.identityId]
+  );
+
+  const candidate = result.rows[0];
+
+  return Boolean(
+    candidate?.candidate_id &&
+      candidate.first_name &&
+      candidate.last_name &&
+      candidate.primary_role_id &&
+      candidate.experience_level_code &&
+      candidate.has_primary_skills
+  );
+}
+
 export async function POST(req: Request) {
   try {
     const { identityId, otp, email, next, consent } = await req.json();
@@ -360,15 +408,19 @@ export async function POST(req: Request) {
         [identityId, normalizedEmail]
       );
 
-      if (candidateRes.rows[0]?.created_new) {
+      const isOnboarded =
+        !candidateRes.rows[0]?.created_new &&
+        (await isPracticeCandidateOnboarded({ pool, identityId }));
+
+      if (isOnboarded) {
+        nextRoute = getPracticeCandidateDashboardUrl();
+      } else {
         nextRoute = getCandidateOnboardingUrl(
           process.env.PRACTICE_AUTH_APP_URL || process.env.AUTH_APP_URL
         );
-      } else {
-        nextRoute = practiceCandidateApp;
       }
     } else if (!nextRoute) {
-      nextRoute = practiceCandidateApp;
+      nextRoute = getPracticeCandidateDashboardUrl();
     }
 
     const response = NextResponse.json({

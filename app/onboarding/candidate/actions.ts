@@ -9,6 +9,10 @@ const practiceCandidateAppUrl =
   process.env.CANDIDATE_APP_URL ||
   "https://candidate.verihireai.work";
 
+const practiceCandidateDashboardUrl =
+  process.env.PRACTICE_CANDIDATE_DASHBOARD_URL ||
+  new URL("/dashboard", practiceCandidateAppUrl).toString();
+
 export async function submitCandidateOnboarding(formData: FormData) {
   console.log("🔥 submitCandidateOnboarding HIT");
 
@@ -37,5 +41,5 @@ export async function submitCandidateOnboarding(formData: FormData) {
     ]
   );
 
-  redirect(practiceCandidateAppUrl);
+  redirect(practiceCandidateDashboardUrl);
 }
