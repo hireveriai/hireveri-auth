@@ -40,5 +40,5 @@ export function getPracticeCandidateDashboardUrl() {
     );
   }
 
-  return new URL("/dashboard", getPracticeCandidateAppUrl()).toString();
+  return getPracticeCandidateAppUrl();
 }
