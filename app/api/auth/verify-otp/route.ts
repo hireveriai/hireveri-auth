@@ -5,10 +5,8 @@ import {
   getRecruiterOnboardingUrl,
 } from "@/lib/app-urls";
 import { getSharedCookieOptions } from "@/lib/auth/shared-cookie";
+import { getPracticeCandidateDashboardUrl } from "@/lib/practice-candidate-url";
 
-const candidateApp = process.env.CANDIDATE_APP_URL!;
-const practiceCandidateApp =
-  process.env.PRACTICE_CANDIDATE_APP_URL || candidateApp;
 const recruiterApp =
   process.env.RECRUITER_APP_URL || "https://recruiter.hireveri.com";
 const recruiterAppTemplate = process.env.RECRUITER_APP_URL_TEMPLATE;
@@ -197,14 +195,6 @@ function appendRecruiterIdentityToPath(
   }
 
   return `${url.pathname}${url.search}${url.hash}`;
-}
-
-function getPracticeCandidateDashboardUrl() {
-  if (process.env.PRACTICE_CANDIDATE_DASHBOARD_URL) {
-    return process.env.PRACTICE_CANDIDATE_DASHBOARD_URL;
-  }
-
-  return new URL("/dashboard", practiceCandidateApp).toString();
 }
 
 async function isPracticeCandidateOnboarded(params: {

@@ -2,16 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { getPool } from "@/lib/db-admin";
+import { getPracticeCandidateDashboardUrl } from "@/lib/practice-candidate-url";
 import { requireSession } from "@/lib/session/requireSession";
-
-const practiceCandidateAppUrl =
-  process.env.PRACTICE_CANDIDATE_APP_URL ||
-  process.env.CANDIDATE_APP_URL ||
-  "https://candidate.verihireai.work";
-
-const practiceCandidateDashboardUrl =
-  process.env.PRACTICE_CANDIDATE_DASHBOARD_URL ||
-  new URL("/dashboard", practiceCandidateAppUrl).toString();
 
 export async function submitCandidateOnboarding(formData: FormData) {
   console.log("🔥 submitCandidateOnboarding HIT");
@@ -41,5 +33,5 @@ export async function submitCandidateOnboarding(formData: FormData) {
     ]
   );
 
-  redirect(practiceCandidateDashboardUrl);
+  redirect(getPracticeCandidateDashboardUrl());
 }
