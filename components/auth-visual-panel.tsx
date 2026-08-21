@@ -1,33 +1,37 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useState } from "react";
+
+import {
+  EvidenceRecordArt,
+  IntegritySignalArt,
+  StructuredInterviewArt,
+} from "@/components/auth-illustrations";
 
 const SLIDE_MS = 6000;
 
 /**
- * Captures are 16:9 and sit inside a 16:9 frame, so nothing is cropped.
- * The panel is deliberately light: the screenshots are dark UI, and a dark
- * panel behind them pulled attention away from the form.
+ * Explanatory diagrams rather than product screenshots — at this size a
+ * screenshot reads as visual noise and competes with the form beside it.
  */
 const slides = [
   {
     id: "structured",
-    image: "/product/structured-interview.jpg",
-    title: "AI-led structured interviews.",
-    body: "Every candidate answers the same competency-mapped questions, scored against the same rubric.",
+    Art: StructuredInterviewArt,
+    title: "Every candidate, the same interview.",
+    body: "Competency-mapped questions asked in the same order and scored against the same rubric.",
   },
   {
     id: "integrity",
-    image: "/product/integrity-review.jpg",
-    title: "Integrity you can review.",
-    body: "VERIS surfaces fraud and assistance signals with the evidence attached.",
+    Art: IntegritySignalArt,
+    title: "Integrity signals, with the evidence.",
+    body: "VERIS flags assistance and fraud signals at the moment they occur, and shows you what triggered them.",
   },
   {
     id: "evidence",
-    image: "/product/evidence-record.jpg",
-    title: "Decisions backed by evidence.",
-    body: "Competency scores, transcripts, and behavioural signals in one candidate record.",
+    Art: EvidenceRecordArt,
+    title: "Decisions you can defend.",
+    body: "Competency scores, transcripts, and behavioural evidence in one reviewable record.",
   },
 ];
 
@@ -63,46 +67,36 @@ export default function AuthVisualPanel() {
         HireVeri Intelligence
       </span>
 
-      {/* Frames and copy are stacked in one grid cell so the panel keeps a
-          fixed height and the slides crossfade without any layout shift. */}
+      {/* Art and copy are stacked in one grid cell so the panel keeps a fixed
+          height and the slides crossfade without any layout shift. */}
       <div className="grid">
-        {slides.map((slide, index) => (
+        {slides.map(({ id, Art, title, body }, index) => (
           <div
-            key={slide.id}
+            key={id}
             className="hv-slide col-start-1 row-start-1"
             data-active={index === active}
             aria-hidden={index !== active}
           >
-            <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-line-strong bg-surface-2 shadow-sm">
-              <Image
-                src={slide.image}
-                alt=""
-                fill
-                priority={index === 0}
-                loading="eager"
-                sizes="(min-width: 1024px) 46vw, 100vw"
-                className="object-contain object-center"
-              />
+            <div className="aspect-video w-full overflow-hidden rounded-xl border border-line bg-surface p-3 shadow-sm">
+              <Art className="h-full w-full" />
             </div>
 
             <h2 className="mt-6 text-[20px] font-semibold leading-snug tracking-tight text-ink-strong">
-              {slide.title}
+              {title}
             </h2>
 
-            <p className="mt-2 text-[13px] leading-6 text-ink-muted">
-              {slide.body}
-            </p>
+            <p className="mt-2 text-[13px] leading-6 text-ink-muted">{body}</p>
           </div>
         ))}
       </div>
 
       <div className="flex items-center gap-2">
-        {slides.map((slide, index) => (
+        {slides.map(({ id, title }, index) => (
           <button
-            key={slide.id}
+            key={id}
             type="button"
             onClick={() => setActive(index)}
-            aria-label={`Show slide ${index + 1}: ${slide.title}`}
+            aria-label={`Show slide ${index + 1}: ${title}`}
             aria-current={index === active}
             className={`h-1.5 rounded-full transition-all duration-300 ${
               index === active
