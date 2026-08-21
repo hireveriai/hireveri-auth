@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 
@@ -48,6 +49,12 @@ export default function VerifyOtpClient() {
     : isSignup
       ? "/practice-signup"
       : "/practice-access";
+
+  /* Returning to the entry screen keeps `next`, so changing the email does
+     not lose where the user was originally headed. */
+  const entryHref = next
+    ? `${entryPath}?next=${encodeURIComponent(next)}`
+    : entryPath;
 
   const [otp, setOtp] = useState("");
   const [agreed, setAgreed] = useState(false);
@@ -166,9 +173,16 @@ export default function VerifyOtpClient() {
           <>
             Please enter the 6-digit code we sent to{" "}
             <span className="font-semibold text-ink-strong">{email}</span>
+            {". "}
+            <Link
+              href={entryHref}
+              className="font-semibold whitespace-nowrap text-brand-600 underline-offset-2 transition hover:text-brand-700 hover:underline"
+            >
+              Change email
+            </Link>
           </>
         }
-        onBack={() => router.push(entryPath)}
+        onBack={() => router.push(entryHref)}
       >
         <form onSubmit={handleVerifySubmit} noValidate>
           <OtpInput
