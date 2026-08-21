@@ -23,7 +23,7 @@ export default function BrandLogo({
     >
       {/* The glyph is white, so it needs the navy chip to read on a light page.
           The 126% scale crops the transparent padding baked into the asset. */}
-      <span className="hv-logo-chip relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden">
+      <span className="hv-logo-chip relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden">
         <Image
           src="/hireveri_logo_white.png"
           alt=""
@@ -36,10 +36,10 @@ export default function BrandLogo({
 
       {markOnly ? null : (
         <span className="flex flex-col justify-center">
-          <span className="text-[1.05rem] font-semibold tracking-[0.04em] text-ink-strong">
+          <span className="text-[0.95rem] font-semibold leading-tight tracking-[0.03em] text-ink-strong">
             HireVeri
           </span>
-          <span className="text-[0.6875rem] font-medium text-ink-muted">
+          <span className="mt-0.5 text-[0.65rem] font-medium leading-tight text-ink-muted">
             Structured Interview Intelligence
           </span>
         </span>

@@ -23,7 +23,7 @@ export default function SocialAuthButtons() {
             key={id}
             type="button"
             onClick={() => setNotice(`${label} sign-in is coming soon.`)}
-            className="flex items-center justify-center gap-2.5 rounded-xl border border-line-strong bg-surface px-4 py-3 text-sm font-medium text-ink transition hover:border-brand-300 hover:bg-surface-1"
+            className="flex items-center justify-center gap-2.5 rounded-xl border border-line-strong bg-surface px-4 py-2.5 text-sm font-medium text-ink transition hover:border-brand-300 hover:bg-surface-1"
           >
             <Icon />
             {label}
@@ -37,7 +37,7 @@ export default function SocialAuthButtons() {
         </p>
       ) : null}
 
-      <div className="my-6 flex items-center gap-3">
+      <div className="my-5 flex items-center gap-3">
         <span className="h-px flex-1 bg-line" />
         <span className="text-xs text-ink-muted">or continue with email</span>
         <span className="h-px flex-1 bg-line" />

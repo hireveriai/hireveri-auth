@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getRecruiterAccessUrl } from "@/lib/app-urls";
-import BrandLogo from "@/components/brand-logo";
-import RecruiterVisualPreview from "@/components/RecruiterVisualPreview";
+import AuthShell from "@/components/auth-shell";
 import SearchableSelect, {
   type SearchableSelectOption,
 } from "@/components/searchable-select";
@@ -315,165 +314,117 @@ export default function RecruiterOnboardingPage() {
   }
 
   return (
-    <main className="min-h-screen w-full bg-surface-1">
-      <div className="mx-auto max-w-7xl px-6 pb-14 pt-8 sm:px-10">
-        <div className="mb-10">
-          <BrandLogo priority />
+    <AuthShell
+      size="wide"
+      badge="Final step"
+      title="Set up your recruiter profile"
+      subtitle="This information helps us configure your hiring workspace."
+    >
+      <form onSubmit={handleCreateWorkspace}>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-[11px] text-ink-muted">
+              First name <span className="text-brand-600">*</span>
+            </label>
+            <input
+              className="input mt-1"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="text-[11px] text-ink-muted">
+              Last name <span className="text-brand-600">*</span>
+            </label>
+            <input
+              className="input mt-1"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+            />
+          </div>
         </div>
 
-        <div className="grid items-start gap-14 lg:grid-cols-2">
-          <section className="flex flex-col justify-start">
-            <div className="mb-10">
-              <RecruiterVisualPreview />
-            </div>
-
-            <span className="mb-4 inline-flex w-fit rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-700">
-              Final step
-            </span>
-
-            <h2 className="mb-4 text-3xl font-semibold tracking-tight text-ink-strong">
-              Configure your hiring workspace
-            </h2>
-
-            <p className="mb-6 max-w-md text-ink-muted">
-              We&apos;ll use this information to set up a secure, global-ready
-              environment for conducting and evaluating interviews.
-            </p>
-
-            <ul className="space-y-2 text-sm text-ink-muted">
-              <li>Your recruiter profile</li>
-              <li>Your company hiring workspace</li>
-              <li>Secure interview and evaluation access</li>
-            </ul>
-
-            <p className="mt-6 text-xs text-ink-muted">
-              Secure onboarding · Global-ready · Enterprise-grade
-            </p>
-          </section>
-
-          <section>
-            <form
-              onSubmit={handleCreateWorkspace}
-              className="w-full max-w-lg rounded-[24px] border border-line bg-surface p-8 shadow-lg"
-            >
-              <h3 className="mb-1 text-2xl font-semibold text-ink-strong">
-                Set up your recruiter profile
-              </h3>
-              <p className="mb-6 text-sm text-ink-muted">
-                This information helps us configure your hiring workspace.
-              </p>
-
-              <div className="mb-6">
-                <p className="mb-3 text-xs uppercase tracking-wide text-ink-muted">
-                  Personal information
-                </p>
-
-                <div className="mb-4 grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-xs text-ink-muted">
-                      First name <span className="text-brand-600">*</span>
-                    </label>
-                    <input
-                      className="input mt-1"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-xs text-ink-muted">
-                      Last name <span className="text-brand-600">*</span>
-                    </label>
-                    <input
-                      className="input mt-1"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="mb-4">
-                  <label className="text-xs text-ink-muted">Work email</label>
-                  <input
-                    className="input mt-1 cursor-not-allowed opacity-60"
-                    value={emailLoading ? "Loading..." : email}
-                    disabled
-                  />
-                </div>
-
-                <PhoneInput
-                  countries={countriesState.items}
-                  selectedCountry={selectedCountry}
-                  phone={phone}
-                  loading={countriesState.loading}
-                  error={countriesState.error}
-                  onCountryChange={setSelectedCountry}
-                  onPhoneChange={setPhone}
-                />
-              </div>
-
-              <div className="mb-8">
-                <p className="mb-3 text-xs uppercase tracking-wide text-ink-muted">
-                  Organization information
-                </p>
-
-                <div className="mb-4">
-                  <label className="text-xs text-ink-muted">
-                    Company name <span className="text-brand-600">*</span>
-                  </label>
-                  <input
-                    className="input mt-1"
-                    value={companyName}
-                    onChange={(e) => setCompanyName(e.target.value)}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <SearchableSelect
-                    options={recruiterRoleOptions}
-                    valueId={recruiterRoleId}
-                    placeholder="Recruiter role"
-                    searchPlaceholder="Search recruiter roles"
-                    loading={recruiterRolesState.loading}
-                    error={recruiterRolesState.error}
-                    onChange={(option) => setRecruiterRoleId(option.id)}
-                  />
-
-                  <SearchableSelect
-                    options={industryOptions}
-                    valueId={industryId}
-                    placeholder="Industry"
-                    searchPlaceholder="Search industries"
-                    loading={industriesState.loading}
-                    error={industriesState.error}
-                    onChange={(option) => setIndustryId(option.id)}
-                  />
-
-                  <SearchableSelect
-                    options={companySizeOptions}
-                    valueId={companySizeId}
-                    placeholder="Company size"
-                    searchPlaceholder="Search company sizes"
-                    loading={companySizesState.loading}
-                    error={companySizesState.error}
-                    onChange={(option) => setCompanySizeId(option.id)}
-                  />
-                </div>
-              </div>
-
-              {error ? <p className="mb-3 text-sm text-signal-risk">{error}</p> : null}
-
-              <button
-                type="submit"
-                disabled={loading || emailLoading}
-                className="w-full rounded-xl bg-brand-600 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-brand-600/40 disabled:shadow-none"
-              >
-                {loading ? "Creating Workspace..." : "Create Hiring Workspace"}
-              </button>
-            </form>
-          </section>
+        <div className="mt-2.5">
+          <label className="text-[11px] text-ink-muted">Work email</label>
+          <input
+            className="input mt-1 cursor-not-allowed opacity-60"
+            value={emailLoading ? "Loading..." : email}
+            disabled
+          />
         </div>
-      </div>
-    </main>
+
+        <div className="mt-2.5">
+          <PhoneInput
+            countries={countriesState.items}
+            selectedCountry={selectedCountry}
+            phone={phone}
+            loading={countriesState.loading}
+            error={countriesState.error}
+            onCountryChange={setSelectedCountry}
+            onPhoneChange={setPhone}
+          />
+        </div>
+
+        <div className="mt-2.5">
+          <label className="text-[11px] text-ink-muted">
+            Company name <span className="text-brand-600">*</span>
+          </label>
+          <input
+            className="input mt-1"
+            value={companyName}
+            onChange={(e) => setCompanyName(e.target.value)}
+          />
+        </div>
+
+        <div className="mt-2.5 grid grid-cols-2 gap-3">
+          <SearchableSelect
+            options={recruiterRoleOptions}
+            valueId={recruiterRoleId}
+            placeholder="Recruiter role"
+            searchPlaceholder="Search recruiter roles"
+            loading={recruiterRolesState.loading}
+            error={recruiterRolesState.error}
+            onChange={(option) => setRecruiterRoleId(option.id)}
+          />
+
+          <SearchableSelect
+            options={industryOptions}
+            valueId={industryId}
+            placeholder="Industry"
+            searchPlaceholder="Search industries"
+            loading={industriesState.loading}
+            error={industriesState.error}
+            onChange={(option) => setIndustryId(option.id)}
+          />
+        </div>
+
+        <div className="mt-2.5">
+          <SearchableSelect
+            options={companySizeOptions}
+            valueId={companySizeId}
+            placeholder="Company size"
+            searchPlaceholder="Search company sizes"
+            loading={companySizesState.loading}
+            error={companySizesState.error}
+            onChange={(option) => setCompanySizeId(option.id)}
+          />
+        </div>
+
+        {error ? (
+          <p role="alert" className="mt-3 text-sm text-signal-risk">
+            {error}
+          </p>
+        ) : null}
+
+        <button
+          type="submit"
+          disabled={loading || emailLoading}
+          className="mt-4 w-full rounded-xl bg-brand-600 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-brand-600/40 disabled:shadow-none"
+        >
+          {loading ? "Creating Workspace..." : "Create Hiring Workspace"}
+        </button>
+      </form>
+    </AuthShell>
   );
 }

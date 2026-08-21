@@ -19,7 +19,7 @@ export default function AuthSubmitButton({
     <button
       type="submit"
       disabled={disabled || loading}
-      className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-brand-600/40 disabled:shadow-none"
+      className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-brand-600/40 disabled:shadow-none"
     >
       {loading ? (
         <>

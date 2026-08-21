@@ -139,8 +139,8 @@ a:hover > .hv-logo-chip {
    ------------------------------------------------------ */
 .input {
   width: 100%;
-  padding: 0.75rem 1rem;
-  border-radius: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: 0.625rem;
   font-size: 0.875rem;
   background: var(--color-surface-1);
   border: 1px solid var(--color-line-strong);

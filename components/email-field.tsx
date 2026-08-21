@@ -19,7 +19,7 @@ export default function EmailField({ invalid = false, className = "", ...props }
       <input
         type="email"
         aria-invalid={invalid}
-        className={`w-full rounded-xl border bg-surface-1 py-3.5 pl-11 pr-4 text-sm text-ink-strong placeholder:text-ink-muted transition focus:bg-surface focus:outline-none ${
+        className={`w-full rounded-xl border bg-surface-1 py-3 pl-11 pr-4 text-sm text-ink-strong placeholder:text-ink-muted transition focus:bg-surface focus:outline-none ${
           invalid
             ? "border-signal-risk"
             : "border-line-strong focus:border-brand-600 focus:shadow-[0_0_0_3px_rgba(10,108,158,0.14)]"
