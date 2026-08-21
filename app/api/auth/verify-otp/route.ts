@@ -280,15 +280,7 @@ export async function POST(req: Request) {
       SET is_active = false
       WHERE identity_id = $1::uuid
         AND is_active = true
-        AND (
-          expires_at <= now()
-          OR auth_intent_id = (
-            SELECT auth_intent_id
-            FROM public.auth_intent_pool
-            WHERE code = 'recruiter_login'
-            LIMIT 1
-          )
-        )
+        AND expires_at <= now()
       `,
       [identityId]
     );

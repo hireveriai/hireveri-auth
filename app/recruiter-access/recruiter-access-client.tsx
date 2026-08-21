@@ -1,36 +1,37 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import AuthShell from "@/components/auth-shell";
 import AuthSubmitButton from "@/components/auth-submit-button";
 import EmailField from "@/components/email-field";
 import SocialAuthButtons from "@/components/social-auth-buttons";
 
-type CandidateIntent = "candidate_practice";
+type RecruiterIntent = "recruiter_login";
 
 const UI = {
-  badge: "PRACTICE ACCESS",
-  title: "Log in to Practice Room",
+  badge: "RECRUITER ACCESS",
+  title: "Log in to your Account",
   subtitle: "Welcome back! Select method to log in:",
-  emailPlaceholder: "Email address",
+  emailPlaceholder: "Work email address",
   cta: "Continue Securely and Verify",
 };
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export default function PracticeAccessPage() {
+export default function RecruiterAccessClient() {
   const router = useRouter();
-  const intent: CandidateIntent = "candidate_practice";
+  const intent: RecruiterIntent = "recruiter_login";
+  const next = useSearchParams().get("next");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    document.title = "Practice Candidate Login | HireVeri";
+    document.title = "Recruiter Login | HireVeri";
 
-    sessionStorage.removeItem("hireveri_candidate_email");
+    sessionStorage.removeItem("hireveri_recruiter_email");
   }, []);
 
   const normalizedEmail = email.trim();
@@ -49,7 +50,7 @@ export default function PracticeAccessPage() {
     }
 
     if (!isEmailValid) {
-      setError("Enter a valid email address.");
+      setError("Enter a valid work email address.");
       return;
     }
 
@@ -87,11 +88,16 @@ export default function PracticeAccessPage() {
       return;
     }
 
-    router.push(
-      `/verify-otp?identityId=${data.identityId}&email=${encodeURIComponent(
-        normalizedEmail
-      )}&intent=${intent}`
-    );
+    const verifyUrl = new URL("/verify-otp", window.location.origin);
+    verifyUrl.searchParams.set("identityId", data.identityId);
+    verifyUrl.searchParams.set("email", normalizedEmail);
+    verifyUrl.searchParams.set("intent", intent);
+
+    if (next) {
+      verifyUrl.searchParams.set("next", next);
+    }
+
+    router.push(`${verifyUrl.pathname}${verifyUrl.search}`);
   }
 
   return (
@@ -101,12 +107,12 @@ export default function PracticeAccessPage() {
       subtitle={UI.subtitle}
       footer={
         <>
-          Hiring with HireVeri?{" "}
+          Practising for an interview?{" "}
           <a
-            href="/recruiter-access"
+            href="/practice-access"
             className="font-medium text-cyan-300 transition hover:text-cyan-200"
           >
-            Recruiter login
+            Go to Practice Room
           </a>
         </>
       }
@@ -125,15 +131,15 @@ export default function PracticeAccessPage() {
               setError(null);
             }
           }}
-          aria-describedby={error ? "practice-email-error" : "practice-email-hint"}
+          aria-describedby={error ? "recruiter-email-error" : "recruiter-email-hint"}
         />
 
-        <p id="practice-email-hint" className="mt-2.5 text-xs text-white/45">
+        <p id="recruiter-email-hint" className="mt-2.5 text-xs text-white/45">
           We&apos;ll send a 6-digit one-time verification code. No passwords.
         </p>
 
         {error ? (
-          <p id="practice-email-error" className="mt-3 text-sm text-red-400">
+          <p id="recruiter-email-error" className="mt-3 text-sm text-red-400">
             {error}
           </p>
         ) : null}

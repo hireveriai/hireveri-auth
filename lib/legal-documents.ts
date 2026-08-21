@@ -19,7 +19,7 @@ export const legalDocuments: Record<LegalDocument["id"], LegalDocument> = {
     title: "HireVeri Terms of Service",
     lastUpdated: "May 2026",
     intro:
-      "HireVeri is a product operated by Verixans Technologies Pvt Ltd (\"Verixans\", \"HireVeri\", \"we\", \"our\", or \"us\"). By accessing or using HireVeri services, recruiter workspace, screening systems, interview intelligence infrastructure, forensic review tools, or related services, you agree to these Terms of Service.",
+      "HireVeri is a product operated by Verixans Technologies Pvt Ltd (\"Verixans\", \"HireVeri\", \"we\", \"our\", or \"us\"). By accessing or using HireVeri services, recruiter workspace, screening systems, interview intelligence infrastructure, evidence review tools, or related services, you agree to these Terms of Service.",
     sections: [
       {
         title: "1. Service Overview",
@@ -27,7 +27,7 @@ export const legalDocuments: Record<LegalDocument["id"], LegalDocument> = {
         bullets: [
           "AI-assisted interview infrastructure",
           "Candidate screening systems",
-          "Behavioral and cognitive review tools",
+          "Behavioral and competency evidence tools",
           "Hiring workflow intelligence",
           "Recruiter collaboration systems",
           "Audit-oriented hiring evidence systems",
@@ -50,7 +50,7 @@ export const legalDocuments: Record<LegalDocument["id"], LegalDocument> = {
       {
         title: "3. AI & Behavioral Analysis Disclaimer",
         paragraphs: [
-          "HireVeri may generate interview summaries, behavioral insights, structured hiring recommendations, risk indicators, and cognitive observations.",
+          "HireVeri may generate interview summaries, behavioral insights, structured hiring recommendations, review indicators, and competency observations.",
           "These outputs are intended to support recruiter review and should not be treated as sole legal or employment determinations. Final hiring decisions remain the responsibility of the organization.",
         ],
       },

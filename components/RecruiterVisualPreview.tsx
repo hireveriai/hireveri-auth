@@ -51,7 +51,7 @@ export default function RecruiterVisualPreview({
         </span>
 
         <h3 className="text-4xl font-semibold leading-tight text-white md:text-[2.8rem]">
-          Cognitive Forensic Hiring System
+          AI-led structured interviews with reviewable integrity and competency evidence
         </h3>
 
         <p className="text-base leading-7 text-white/78 md:text-lg">

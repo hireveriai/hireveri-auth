@@ -1,9 +1,12 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 
+import AuthShell from "@/components/auth-shell";
+import AuthSubmitButton from "@/components/auth-submit-button";
 import LegalDocumentModal from "@/components/LegalDocumentModal";
+import OtpInput from "@/components/otp-input";
 import { legalDocuments, PRIVACY_VERSION, TERMS_VERSION, type LegalDocument } from "@/lib/legal-documents";
 
 type VerifyOtpResponse = {
@@ -12,7 +15,19 @@ type VerifyOtpResponse = {
   token?: string;
 };
 
+const RESEND_SECONDS = 60;
+
+function formatCountdown(seconds: number) {
+  const mins = Math.floor(seconds / 60)
+    .toString()
+    .padStart(2, "0");
+  const secs = (seconds % 60).toString().padStart(2, "0");
+
+  return `${mins}:${secs}`;
+}
+
 export default function VerifyOtpClient() {
+  const router = useRouter();
   const searchParams = useSearchParams();
 
   const identityId = searchParams.get("identityId");
@@ -24,7 +39,7 @@ export default function VerifyOtpClient() {
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [timer, setTimer] = useState(30);
+  const [timer, setTimer] = useState(RESEND_SECONDS);
   const [openLegalDocument, setOpenLegalDocument] = useState<LegalDocument["id"] | null>(null);
 
   useEffect(() => {
@@ -39,9 +54,7 @@ export default function VerifyOtpClient() {
     return () => clearInterval(interval);
   }, [timer]);
 
-  async function handleVerifySubmit(e?: FormEvent<HTMLFormElement>) {
-    e?.preventDefault();
-
+  async function submitOtp(code: string) {
     if (loading) {
       return;
     }
@@ -51,7 +64,7 @@ export default function VerifyOtpClient() {
       return;
     }
 
-    if (!/^\d{6}$/.test(otp)) {
+    if (!/^\d{6}$/.test(code)) {
       setError("Please enter the 6-digit verification code.");
       return;
     }
@@ -69,7 +82,7 @@ export default function VerifyOtpClient() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         identityId,
-        otp,
+        otp: code,
         email,
         next,
         consent: {
@@ -105,6 +118,11 @@ export default function VerifyOtpClient() {
     window.location.href = "/";
   }
 
+  function handleVerifySubmit(e?: FormEvent<HTMLFormElement>) {
+    e?.preventDefault();
+    void submitOtp(otp);
+  }
+
   async function resendOtp() {
     if (!email) {
       setError("Session expired. Please restart sign in.");
@@ -112,7 +130,8 @@ export default function VerifyOtpClient() {
     }
 
     setError(null);
-    setTimer(30);
+    setOtp("");
+    setTimer(RESEND_SECONDS);
 
     await fetch("/api/auth/request-otp", {
       method: "POST",
@@ -126,60 +145,53 @@ export default function VerifyOtpClient() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0B0F14] px-6 py-20 text-white">
-      <div className="w-[420px] rounded-2xl border border-cyan-400/20 bg-[#0F141B]/90 p-8">
-        <form onSubmit={handleVerifySubmit}>
-          <h1 className="mb-1 text-center text-2xl font-semibold">
-            Verify your code
-          </h1>
-
-          <p className="mb-6 text-center text-sm text-white/60">
-            Enter the 6-digit code we sent to{" "}
+    <>
+      <AuthShell
+        badge="Enter OTP"
+        title="Verify your code"
+        subtitle={
+          <>
+            Please enter the 6-digit code we sent to{" "}
             <span className="font-medium text-white">{email}</span>
-          </p>
-
-          <input
+          </>
+        }
+        onBack={() =>
+          router.push(
+            intent === "candidate_practice" ? "/practice-access" : "/recruiter-access"
+          )
+        }
+      >
+        <form onSubmit={handleVerifySubmit} noValidate>
+          <OtpInput
             value={otp}
-            onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                e.currentTarget.form?.requestSubmit();
+            onChange={(value) => {
+              setOtp(value);
+              if (error) {
+                setError(null);
               }
             }}
-            maxLength={6}
+            onComplete={(value) => {
+              if (agreed) {
+                void submitOtp(value);
+              }
+            }}
             disabled={loading}
-            placeholder="••••••"
-            className="mb-3 w-full rounded border border-white/10 bg-black p-3 text-center text-lg tracking-widest focus:border-cyan-400/40 focus:outline-none disabled:opacity-60"
+            invalid={!!error}
           />
 
-          <div className="mb-4 text-center text-sm text-white/50">
-            {timer > 0 ? (
-              <span>Resend code in {timer}s</span>
-            ) : (
-              <button
-                type="button"
-                onClick={resendOtp}
-                className="underline transition hover:text-white"
-              >
-                Didn&apos;t receive the code? Resend
-              </button>
-            )}
-          </div>
-
-          <label className="mb-4 flex items-start gap-2 text-[12px] text-white/60">
+          <label className="mt-7 flex items-start gap-2.5 text-xs leading-5 text-white/55">
             <input
               type="checkbox"
               checked={agreed}
               onChange={(e) => setAgreed(e.target.checked)}
-              className="mt-1 accent-cyan-500"
+              className="mt-0.5 h-4 w-4 shrink-0 rounded accent-cyan-400"
             />
             <span>
               I agree to HireVeri&apos;s{" "}
               <button
                 type="button"
                 onClick={() => setOpenLegalDocument("terms")}
-                className="underline transition hover:text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/40"
+                className="text-cyan-300 underline-offset-2 transition hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50"
               >
                 Terms of Service
               </button>{" "}
@@ -187,7 +199,7 @@ export default function VerifyOtpClient() {
               <button
                 type="button"
                 onClick={() => setOpenLegalDocument("privacy")}
-                className="underline transition hover:text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/40"
+                className="text-cyan-300 underline-offset-2 transition hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50"
               >
                 Privacy Policy
               </button>
@@ -196,23 +208,44 @@ export default function VerifyOtpClient() {
           </label>
 
           {error ? (
-            <p className="mb-3 text-center text-sm text-red-400">{error}</p>
+            <p role="alert" className="mt-4 text-center text-sm text-red-400">
+              {error}
+            </p>
           ) : null}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded bg-cyan-500 py-3 font-semibold text-black transition hover:bg-cyan-400 disabled:opacity-50"
-          >
-            {loading ? "Verifying..." : "Verify & Continue"}
-          </button>
+          <div className="mt-6">
+            <AuthSubmitButton
+              disabled={otp.length !== 6 || !agreed}
+              loading={loading}
+              loadingLabel="Verifying..."
+            >
+              Verify
+            </AuthSubmitButton>
+          </div>
+
+          <div className="mt-6 text-center text-sm text-white/50">
+            {timer > 0 ? (
+              <p>
+                You can resend the OTP in{" "}
+                <span className="font-semibold text-white">{formatCountdown(timer)}</span>
+              </p>
+            ) : (
+              <button
+                type="button"
+                onClick={resendOtp}
+                className="font-medium text-cyan-300 transition hover:text-cyan-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50"
+              >
+                Resend OTP
+              </button>
+            )}
+          </div>
         </form>
-      </div>
+      </AuthShell>
 
       <LegalDocumentModal
         document={openLegalDocument ? legalDocuments[openLegalDocument] : null}
         onClose={() => setOpenLegalDocument(null)}
       />
-    </div>
+    </>
   );
 }
