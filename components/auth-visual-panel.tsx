@@ -1,39 +1,39 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
-
-import {
-  EvidenceRecordArt,
-  IntegritySignalArt,
-  StructuredInterviewArt,
-} from "@/components/auth-illustrations";
 
 const SLIDE_MS = 6000;
 
 /**
- * Explanatory diagrams rather than product screenshots — at this size a
- * screenshot reads as visual noise and competes with the form beside it.
+ * Each artwork is a finished slide — it carries its own heading and body copy —
+ * so the panel adds no text of its own. The files are portrait (~411x844) and
+ * their copy runs to both edges, so they are never cropped: the frame keeps the
+ * source aspect ratio and is capped in height so it cannot stretch the card.
  */
 const slides = [
   {
+    id: "secure",
+    image: "/Image1.png",
+    alt: "Secure and private: enterprise-grade security with end-to-end encryption, so your data stays protected at every step.",
+    label: "Secure & Private",
+  },
+  {
     id: "structured",
-    Art: StructuredInterviewArt,
-    title: "Every candidate, the same interview.",
-    body: "Competency-mapped questions asked in the same order and scored against the same rubric.",
+    image: "/Image2.png",
+    alt: "Structured and fair: every candidate gets the same competency-mapped questions in the same order, scored consistently.",
+    label: "Structured & Fair",
   },
   {
-    id: "integrity",
-    Art: IntegritySignalArt,
-    title: "Integrity signals, with the evidence.",
-    body: "VERIS flags assistance and fraud signals at the moment they occur, and shows you what triggered them.",
-  },
-  {
-    id: "evidence",
-    Art: EvidenceRecordArt,
-    title: "Decisions you can defend.",
-    body: "Competency scores, transcripts, and behavioural evidence in one reviewable record.",
+    id: "human",
+    image: "/Image3.png",
+    alt: "AI plus human intelligence: AI provides objective insights and evidence, while final decisions remain with recruiters.",
+    label: "AI + Human Intelligence",
   },
 ];
+
+const IMAGE_WIDTH = 411;
+const IMAGE_HEIGHT = 844;
 
 export default function AuthVisualPanel() {
   const [active, setActive] = useState(0);
@@ -61,42 +61,50 @@ export default function AuthVisualPanel() {
       aria-label="What HireVeri does"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
-      className="relative hidden flex-col justify-center gap-6 border-r border-line bg-gradient-to-b from-brand-50 to-surface-2 px-9 py-9 lg:flex"
+      className="relative hidden flex-col items-center justify-between gap-5 border-r border-line bg-gradient-to-b from-brand-50 to-surface-2 px-8 py-8 lg:flex"
     >
       <span className="inline-flex w-fit rounded-full border border-brand-200 bg-surface px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-700">
         HireVeri Intelligence
       </span>
 
-      {/* Art and copy are stacked in one grid cell so the panel keeps a fixed
-          height and the slides crossfade without any layout shift. */}
+      {/* One grid cell holds every slide, so the panel keeps a constant height
+          and the artwork crossfades without any layout shift. */}
       <div className="grid">
-        {slides.map(({ id, Art, title, body }, index) => (
+        {slides.map((slide, index) => (
           <div
-            key={id}
-            className="hv-slide col-start-1 row-start-1"
+            key={slide.id}
+            className="hv-slide col-start-1 row-start-1 flex items-center justify-center"
             data-active={index === active}
             aria-hidden={index !== active}
           >
-            <div className="aspect-video w-full overflow-hidden rounded-xl border border-line bg-surface p-3 shadow-sm">
-              <Art className="h-full w-full" />
+            {/* The frame carries the source aspect ratio and a fixed height, so
+                layout is reserved before the image decodes and the artwork is
+                shown whole — never cropped, never stretched. */}
+            <div
+              className="relative h-[min(58vh,440px)] overflow-hidden rounded-2xl border border-line bg-surface shadow-sm"
+              style={{ aspectRatio: `${IMAGE_WIDTH} / ${IMAGE_HEIGHT}` }}
+            >
+              <Image
+                src={slide.image}
+                alt={index === active ? slide.alt : ""}
+                fill
+                priority={index === 0}
+                loading="eager"
+                sizes="(min-width: 1024px) 260px, 100vw"
+                className="object-contain"
+              />
             </div>
-
-            <h2 className="mt-6 text-[20px] font-semibold leading-snug tracking-tight text-ink-strong">
-              {title}
-            </h2>
-
-            <p className="mt-2 text-[13px] leading-6 text-ink-muted">{body}</p>
           </div>
         ))}
       </div>
 
       <div className="flex items-center gap-2">
-        {slides.map(({ id, title }, index) => (
+        {slides.map((slide, index) => (
           <button
-            key={id}
+            key={slide.id}
             type="button"
             onClick={() => setActive(index)}
-            aria-label={`Show slide ${index + 1}: ${title}`}
+            aria-label={`Show slide ${index + 1}: ${slide.label}`}
             aria-current={index === active}
             className={`h-1.5 rounded-full transition-all duration-300 ${
               index === active

@@ -5,6 +5,11 @@ import {
   getRecruiterOnboardingUrl,
 } from "@/lib/app-urls";
 import { getSharedCookieOptions } from "@/lib/auth/shared-cookie";
+import {
+  describeDbError,
+  isOtpRejectionError,
+  isTransientDbCapacityError,
+} from "@/lib/db-errors";
 import { getPracticeCandidateDashboardUrl } from "@/lib/practice-candidate-url";
 
 const recruiterApp =
@@ -454,7 +459,27 @@ export async function POST(req: Request) {
 
     return response;
   } catch (error) {
-    console.error("VERIFY OTP ERROR:", error);
+    // The database function signals a bad code by raising, so an exception
+    // here is not necessarily a server fault. Classify before responding.
+    console.error("VERIFY OTP ERROR:", describeDbError(error));
+
+    if (isOtpRejectionError(error)) {
+      return NextResponse.json(
+        { error: "Invalid or expired code. Please request a new one." },
+        { status: 401 }
+      );
+    }
+
+    if (isTransientDbCapacityError(error)) {
+      return NextResponse.json(
+        {
+          error:
+            "Sign-in is busy right now. Please try the same code again in a few seconds.",
+        },
+        { status: 503 }
+      );
+    }
+
     return NextResponse.json(
       { error: "Server error during verification. Please try again." },
       { status: 500 }
