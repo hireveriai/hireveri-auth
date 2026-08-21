@@ -34,6 +34,20 @@ export default function VerifyOtpClient() {
   const email = searchParams.get("email");
   const intent = searchParams.get("intent");
   const next = searchParams.get("next");
+  const isSignup = searchParams.get("mode") === "signup";
+  const isRecruiter = intent === "recruiter_login";
+
+  /* Where the back arrow returns to — the screen the user actually came from.
+     Which screen they started on does not change what happens after the code
+     is verified: the API routes an existing user to their dashboard and a new
+     one to onboarding, either way. */
+  const entryPath = isRecruiter
+    ? isSignup
+      ? "/recruiter-signup"
+      : "/recruiter-access"
+    : isSignup
+      ? "/practice-signup"
+      : "/practice-access";
 
   const [otp, setOtp] = useState("");
   const [agreed, setAgreed] = useState(false);
@@ -138,8 +152,7 @@ export default function VerifyOtpClient() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         email,
-        intent:
-          intent === "recruiter_login" ? "recruiter_login" : "candidate_practice",
+        intent: isRecruiter ? "recruiter_login" : "candidate_practice",
       }),
     });
   }
@@ -148,18 +161,14 @@ export default function VerifyOtpClient() {
     <>
       <AuthShell
         badge="Enter OTP"
-        title="Verify your code"
+        title={isSignup ? "Verify your email" : "Verify your code"}
         subtitle={
           <>
             Please enter the 6-digit code we sent to{" "}
-            <span className="font-medium text-white">{email}</span>
+            <span className="font-semibold text-ink-strong">{email}</span>
           </>
         }
-        onBack={() =>
-          router.push(
-            intent === "candidate_practice" ? "/practice-access" : "/recruiter-access"
-          )
-        }
+        onBack={() => router.push(entryPath)}
       >
         <form onSubmit={handleVerifySubmit} noValidate>
           <OtpInput
@@ -179,19 +188,19 @@ export default function VerifyOtpClient() {
             invalid={!!error}
           />
 
-          <label className="mt-7 flex items-start gap-2.5 text-xs leading-5 text-white/55">
+          <label className="mt-7 flex items-start gap-2.5 text-xs leading-5 text-ink-muted">
             <input
               type="checkbox"
               checked={agreed}
               onChange={(e) => setAgreed(e.target.checked)}
-              className="mt-0.5 h-4 w-4 shrink-0 rounded accent-cyan-400"
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border-line-strong accent-brand-600"
             />
             <span>
               I agree to HireVeri&apos;s{" "}
               <button
                 type="button"
                 onClick={() => setOpenLegalDocument("terms")}
-                className="text-cyan-300 underline-offset-2 transition hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50"
+                className="font-medium text-brand-600 underline-offset-2 transition hover:text-brand-700 hover:underline"
               >
                 Terms of Service
               </button>{" "}
@@ -199,7 +208,7 @@ export default function VerifyOtpClient() {
               <button
                 type="button"
                 onClick={() => setOpenLegalDocument("privacy")}
-                className="text-cyan-300 underline-offset-2 transition hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50"
+                className="font-medium text-brand-600 underline-offset-2 transition hover:text-brand-700 hover:underline"
               >
                 Privacy Policy
               </button>
@@ -208,7 +217,7 @@ export default function VerifyOtpClient() {
           </label>
 
           {error ? (
-            <p role="alert" className="mt-4 text-center text-sm text-red-400">
+            <p role="alert" className="mt-4 text-center text-sm text-signal-risk">
               {error}
             </p>
           ) : null}
@@ -223,17 +232,17 @@ export default function VerifyOtpClient() {
             </AuthSubmitButton>
           </div>
 
-          <div className="mt-6 text-center text-sm text-white/50">
+          <div className="mt-6 text-center text-sm text-ink-muted">
             {timer > 0 ? (
               <p>
                 You can resend the OTP in{" "}
-                <span className="font-semibold text-white">{formatCountdown(timer)}</span>
+                <span className="font-semibold text-ink-strong">{formatCountdown(timer)}</span>
               </p>
             ) : (
               <button
                 type="button"
                 onClick={resendOtp}
-                className="font-medium text-cyan-300 transition hover:text-cyan-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50"
+                className="font-medium text-brand-600 transition hover:text-brand-700"
               >
                 Resend OTP
               </button>

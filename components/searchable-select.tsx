@@ -26,8 +26,8 @@ type SearchableSelectProps = {
 function SelectSkeleton() {
   return (
     <div className="input relative mt-0 animate-pulse overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/8 to-transparent" />
-      <div className="h-6 rounded-md bg-white/6" />
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-line to-transparent" />
+      <div className="h-6 rounded-md bg-surface-2" />
     </div>
   );
 }
@@ -114,7 +114,7 @@ export default function SearchableSelect({
           setOpen((current) => !current);
         }}
         className={`input flex items-center justify-between gap-3 text-left ${
-          error ? "border-red-400/30 text-red-200" : ""
+          error ? "border-signal-risk text-signal-risk" : ""
         } ${disabled ? "opacity-60" : ""}`.trim()}
       >
         <span className="flex min-w-0 items-center gap-2">
@@ -125,27 +125,27 @@ export default function SearchableSelect({
           <span className="truncate text-sm">{displayText}</span>
         </span>
 
-        <span className="flex items-center gap-2 text-xs text-white/40">
+        <span className="flex items-center gap-2 text-xs text-ink-muted">
           {selectedOption?.trailing ? (
             <span className="truncate">{selectedOption.trailing}</span>
           ) : null}
-          <span className="text-white/35">{open ? "▲" : "▼"}</span>
+          <span className="text-ink-muted">{open ? "▲" : "▼"}</span>
         </span>
       </button>
 
       {error ? (
-        <p className="mt-2 text-xs text-red-300/85">{error}</p>
+        <p className="mt-2 text-xs text-signal-risk">{error}</p>
       ) : null}
 
       {open ? (
-        <div className="absolute left-0 right-0 z-30 mt-2 overflow-hidden rounded-xl border border-white/10 bg-[#0d141c]/95 shadow-[0_24px_60px_rgba(2,8,15,0.55)] backdrop-blur-md">
-          <div className="border-b border-white/8 p-3">
+        <div className="absolute left-0 right-0 z-30 mt-2 overflow-hidden rounded-xl border border-line bg-surface shadow-lg backdrop-blur-md">
+          <div className="border-b border-line p-3">
             <input
               autoFocus
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder={searchPlaceholder}
-              className="input !bg-black/30 !py-2 text-sm"
+              className="input !bg-surface-2 !py-2 text-sm"
             />
           </div>
 
@@ -160,8 +160,8 @@ export default function SearchableSelect({
                     setOpen(false);
                     setQuery("");
                   }}
-                  className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left transition hover:bg-white/7 ${
-                    option.id === valueId ? "bg-white/8" : ""
+                  className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left transition hover:bg-surface-2 ${
+                    option.id === valueId ? "bg-brand-50" : ""
                   }`.trim()}
                 >
                   <span className="flex min-w-0 items-start gap-2">
@@ -170,11 +170,11 @@ export default function SearchableSelect({
                     ) : null}
 
                     <span className="min-w-0">
-                      <span className="block truncate text-sm text-white">
+                      <span className="block truncate text-sm text-ink-strong">
                         {option.label}
                       </span>
                       {option.description ? (
-                        <span className="block truncate text-xs text-white/45">
+                        <span className="block truncate text-xs text-ink-muted">
                           {option.description}
                         </span>
                       ) : null}
@@ -182,14 +182,14 @@ export default function SearchableSelect({
                   </span>
 
                   {option.trailing ? (
-                    <span className="shrink-0 text-xs text-cyan-100/80">
+                    <span className="shrink-0 text-xs text-brand-600">
                       {option.trailing}
                     </span>
                   ) : null}
                 </button>
               ))
             ) : (
-              <div className="px-3 py-4 text-sm text-white/45">
+              <div className="px-3 py-4 text-sm text-ink-muted">
                 {emptyMessage}
               </div>
             )}

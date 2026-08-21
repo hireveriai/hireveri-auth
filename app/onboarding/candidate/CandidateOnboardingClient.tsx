@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+
+import BrandLogo from "@/components/brand-logo";
 import { submitCandidateOnboarding } from "./actions";
 
 /* ------------------------------------------------------------------ */
@@ -46,46 +48,52 @@ export default function CandidateOnboardingClient({
     );
   };
 
-  const inputClass =
-    "w-full rounded-lg bg-[#0b1218] border border-neutral-700 px-4 py-2.5 text-sm text-neutral-100 focus:outline-none focus:border-neutral-500";
+  const inputClass = "input";
 
   return (
-    <main className="relative min-h-screen bg-[#0b1218] text-neutral-100">
-      <div className="absolute inset-0 bg-gradient-to-br from-[#0b1218] via-[#0e1a22] to-[#0b1218]" />
+    <main className="relative min-h-screen bg-surface-1 text-ink-strong">
+      <div className="relative z-10 mx-auto max-w-7xl px-6 pb-16 pt-8">
+        <div className="mb-10">
+          <BrandLogo priority />
+        </div>
 
-      <div className="relative z-10 mx-auto max-w-7xl px-6 pb-16 pt-8 grid grid-cols-1 gap-16 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-16 lg:grid-cols-2">
         {/* LEFT */}
-        <section className="pt-6">
-          <div className="mb-10 h-48 rounded-2xl bg-gradient-to-br from-[#0f1c24] via-[#0c1820] to-[#0f1c24] ring-1 ring-white/5 flex items-center justify-center">
-            <span className="text-sm text-neutral-500">
+        <section>
+          <div className="mb-10 flex h-48 items-center justify-center rounded-[24px] border border-line bg-navy">
+            <span className="text-sm text-ink-inv-muted">
               Candidate workspace visual
             </span>
           </div>
+
+          <span className="mb-4 inline-flex w-fit rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-700">
+            Final step
+          </span>
 
           <h1 className="text-4xl font-semibold mb-6">
             Set up your practice workspace
           </h1>
 
-          <p className="text-neutral-300 mb-8 max-w-xl">
+          <p className="mb-8 max-w-xl text-ink-muted">
             We’ll configure a focused, distraction-free environment for
             practicing technical interviews.
           </p>
 
-          <ul className="text-sm text-neutral-400 space-y-2">
+          <ul className="space-y-2 text-sm text-ink-muted">
             <li>• Your candidate profile</li>
             <li>• Skill-specific interview configuration</li>
             <li>• Secure, private practice sessions</li>
           </ul>
 
-          <p className="mt-10 text-xs text-neutral-500">
+          <p className="mt-10 text-xs text-ink-muted">
             Secure onboarding · Practice-only · No recruiter visibility
           </p>
         </section>
 
         {/* RIGHT */}
-        <section className="bg-[#0f1c24] rounded-2xl p-10 ring-1 ring-white/5">
+        <section className="rounded-[24px] border border-line bg-surface p-8 shadow-lg sm:p-10">
           <form action={submitCandidateOnboarding} className="space-y-6">
-            <h2 className="text-lg font-medium">Candidate information</h2>
+            <h2 className="text-lg font-semibold text-ink-strong">Candidate information</h2>
 
             <div className="grid grid-cols-2 gap-4">
               <input name="first_name" placeholder="First name" required className={inputClass} />
@@ -104,7 +112,7 @@ export default function CandidateOnboardingClient({
               <input
                 name="country_code"
                 defaultValue="+91"
-                className="w-24 rounded-lg bg-[#0b1218] border border-neutral-700 px-3 py-2.5 text-sm"
+                className="input w-24"
               />
               <input name="phone" placeholder="Phone number" required className={inputClass} />
             </div>
@@ -133,7 +141,7 @@ export default function CandidateOnboardingClient({
             <button
               type="button"
               onClick={() => setSkillsOpen(true)}
-              className="w-full rounded-lg bg-[#0b1218] border border-neutral-700 px-4 py-2.5 text-left text-sm text-neutral-300 hover:border-neutral-500"
+              className="input text-left text-ink-muted hover:border-brand-300"
             >
               {selectedSkills.length === 0
                 ? "Select primary skills"
@@ -147,28 +155,36 @@ export default function CandidateOnboardingClient({
 
             <button
               type="submit"
-              className="w-full rounded-lg bg-blue-600 hover:bg-blue-500 py-3 text-sm font-medium"
+              className="w-full rounded-xl bg-brand-600 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700"
             >
               Continue
             </button>
           </form>
         </section>
+        </div>
       </div>
 
       {/* MODAL */}
       {skillsOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center">
-          <div className="bg-[#0f1c24] w-full max-w-lg rounded-2xl p-6 ring-1 ring-white/10">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-medium">Select primary skills</h3>
-              <button onClick={() => setSkillsOpen(false)}>✕</button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(10,22,38,0.55)] p-4">
+          <div className="w-full max-w-lg rounded-[24px] border border-line bg-surface p-6 shadow-lg">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-ink-strong">Select primary skills</h3>
+              <button
+                type="button"
+                aria-label="Close"
+                onClick={() => setSkillsOpen(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-line text-ink-muted transition hover:border-brand-300 hover:text-brand-700"
+              >
+                ✕
+              </button>
             </div>
 
             <div className="grid grid-cols-2 gap-3 max-h-72 overflow-y-auto">
               {skills.map((s) => (
                 <label
                   key={s.skill_id}
-                  className="flex items-center gap-2 border border-neutral-700 rounded-md px-3 py-2 text-sm cursor-pointer hover:border-neutral-500"
+                  className="flex cursor-pointer items-center gap-2 rounded-lg border border-line px-3 py-2 text-sm text-ink transition hover:border-brand-300 hover:bg-surface-1"
                 >
                   <input
                     type="checkbox"
@@ -183,7 +199,7 @@ export default function CandidateOnboardingClient({
             <div className="mt-6 flex justify-end">
               <button
                 onClick={() => setSkillsOpen(false)}
-                className="bg-blue-600 hover:bg-blue-500 rounded-lg px-5 py-2 text-sm"
+                className="rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700"
               >
                 Done
               </button>

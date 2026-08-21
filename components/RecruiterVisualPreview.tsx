@@ -13,7 +13,7 @@ export default function RecruiterVisualPreview({
 }: RecruiterVisualPreviewProps) {
   return (
     <section
-      className={`relative flex min-h-[420px] items-center overflow-hidden rounded-2xl border border-white/10 bg-[#050a11] p-8 shadow-[0_0_120px_rgba(0,200,255,0.15)] ${className}`.trim()}
+      className={`relative flex min-h-[420px] items-center overflow-hidden rounded-[24px] border border-line bg-navy p-8 shadow-lg ${className}`.trim()}
     >
       <div className="absolute inset-0 overflow-hidden">
         <Image
@@ -46,7 +46,7 @@ export default function RecruiterVisualPreview({
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_72%_48%,rgba(0,200,255,0.12),transparent_30%)]" />
 
       <div className="relative flex max-w-[500px] flex-col justify-center gap-4">
-        <span className="inline-flex w-fit rounded-full border border-cyan-300/16 bg-cyan-300/8 px-3 py-1 text-xs uppercase tracking-[0.24em] text-cyan-100/82">
+        <span className="inline-flex w-fit rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs uppercase tracking-[0.24em] text-ink-inv-strong">
           HireVeri Intelligence
         </span>
 
@@ -54,7 +54,7 @@ export default function RecruiterVisualPreview({
           AI-led structured interviews with reviewable integrity and competency evidence
         </h3>
 
-        <p className="text-base leading-7 text-white/78 md:text-lg">
+        <p className="text-base leading-7 text-ink-inv md:text-lg">
           Detect fraud signals. Analyze real behavior. Make confident hiring
           decisions.
         </p>

@@ -1,58 +1,142 @@
-import Image from "next/image";
+"use client";
 
+import Image from "next/image";
+import { useEffect, useState } from "react";
+
+const SLIDE_MS = 6000;
+
+/**
+ * Product shots live in /public. Swap `image` here when a dedicated capture
+ * exists for a slide — `objectPosition` picks the focal point of the crop.
+ */
 const slides = [
   {
+    id: "structured",
+    image: "/Dashboard.png",
+    objectPosition: "18% center",
     title: "AI-led structured interviews.",
-    body: "Detect fraud signals, analyze real behavior, and make confident hiring decisions.",
+    body: "Every candidate answers the same competency-mapped questions, scored against the same rubric.",
+  },
+  {
+    id: "veris",
+    image: "/veris.png",
+    objectPosition: "center",
+    title: "Integrity you can review.",
+    body: "VERIS surfaces fraud and assistance signals with the evidence attached, so you can judge them yourself.",
+  },
+  {
+    id: "evidence",
+    image: "/Dashboard.png",
+    objectPosition: "82% center",
+    title: "Decisions backed by evidence.",
+    body: "Competency scores, transcripts, and behavioural signals in one reviewable candidate record.",
   },
 ];
 
 export default function AuthVisualPanel() {
-  const active = slides[0];
+  const [active, setActive] = useState(0);
+  const [paused, setPaused] = useState(false);
+
+  useEffect(() => {
+    if (paused) {
+      return;
+    }
+
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (reduceMotion) {
+      return;
+    }
+
+    const id = setInterval(() => {
+      setActive((current) => (current + 1) % slides.length);
+    }, SLIDE_MS);
+
+    return () => clearInterval(id);
+  }, [paused]);
 
   return (
-    <section className="relative hidden overflow-hidden bg-[#061020] lg:flex lg:flex-col lg:justify-between">
-      <div className="absolute inset-0">
-        <Image
-          src="/Dashboard.png"
-          alt=""
-          fill
-          priority
-          sizes="50vw"
-          className="object-cover object-[62%_center] brightness-[0.6] contrast-[1.15] saturate-110"
-        />
-      </div>
+    <section
+      aria-roledescription="carousel"
+      aria-label="What HireVeri does"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      className="relative hidden overflow-hidden bg-navy lg:flex lg:flex-col lg:justify-end"
+    >
+      {slides.map((slide, index) => (
+        <div
+          key={slide.id}
+          className="hv-slide absolute inset-0"
+          data-active={index === active}
+          aria-hidden={index !== active}
+        >
+          <Image
+            src={slide.image}
+            alt=""
+            fill
+            priority={index === 0}
+            sizes="50vw"
+            style={{ objectPosition: slide.objectPosition }}
+            className="object-cover"
+          />
+        </div>
+      ))}
 
+      {/* Scrim: the copy sits over a product screenshot, so it needs a floor
+          under it to stay AA-legible whichever slide is showing. */}
       <div
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(160deg, rgba(6,16,32,0.55) 0%, rgba(6,16,32,0.78) 55%, rgba(6,16,32,0.94) 100%)",
+            "linear-gradient(180deg, rgba(6,23,38,0.55) 0%, rgba(6,23,38,0.72) 42%, rgba(6,23,38,0.94) 100%)",
         }}
       />
 
-      <div className="pointer-events-none absolute -left-16 top-16 h-64 w-64 rounded-full bg-cyan-400/15 blur-3xl" />
-      <div className="pointer-events-none absolute -right-10 bottom-10 h-72 w-72 rounded-full bg-sky-500/12 blur-3xl" />
+      <div className="pointer-events-none absolute -left-16 top-16 h-64 w-64 rounded-full bg-brand-400/15 blur-3xl" />
 
       <div className="relative px-12 pt-14">
-        <span className="inline-flex rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-[11px] uppercase tracking-[0.24em] text-cyan-100/85">
+        <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] uppercase tracking-[0.24em] text-ink-inv-strong backdrop-blur-sm">
           HireVeri Intelligence
         </span>
       </div>
 
-      <div className="relative px-12 pb-14 text-center">
-        <h2 className="text-[26px] font-semibold leading-snug text-white">
-          {active.title}
-        </h2>
+      <div className="relative px-12 pb-14 pt-10">
+        {/* All copy blocks share one grid cell so the panel keeps the height of
+            the tallest slide and nothing shifts as they crossfade. */}
+        <div className="grid">
+          {slides.map((slide, index) => (
+            <div
+              key={slide.id}
+              className="hv-slide col-start-1 row-start-1"
+              data-active={index === active}
+              aria-hidden={index !== active}
+            >
+              <h2 className="text-[26px] font-semibold leading-snug text-ink-inv-strong">
+                {slide.title}
+              </h2>
 
-        <p className="mx-auto mt-3 max-w-[380px] text-sm leading-6 text-white/70">
-          {active.body}
-        </p>
+              <p className="mt-3 max-w-[420px] text-sm leading-6 text-ink-inv">
+                {slide.body}
+              </p>
+            </div>
+          ))}
+        </div>
 
-        <div className="mt-7 flex items-center justify-center gap-2" aria-hidden="true">
-          <span className="h-2 w-2 rounded-full bg-cyan-300" />
-          <span className="h-2 w-2 rounded-full bg-white/25" />
-          <span className="h-2 w-2 rounded-full bg-white/25" />
+        <div className="mt-8 flex items-center gap-2.5">
+          {slides.map((slide, index) => (
+            <button
+              key={slide.id}
+              type="button"
+              onClick={() => setActive(index)}
+              aria-label={`Show slide ${index + 1}: ${slide.title}`}
+              aria-current={index === active}
+              className={`h-2 rounded-full transition-all duration-300 ${
+                index === active
+                  ? "w-7 bg-brand-300"
+                  : "w-2 bg-white/30 hover:bg-white/55"
+              }`}
+            />
+          ))}
         </div>
       </div>
     </section>

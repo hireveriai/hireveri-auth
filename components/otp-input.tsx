@@ -119,10 +119,10 @@ export default function OtpInput({
           disabled={disabled}
           aria-label={`Digit ${index + 1}`}
           aria-invalid={invalid}
-          className={`h-13 w-11 rounded-xl border bg-white/[0.04] text-center text-xl font-semibold text-white transition focus:outline-none disabled:opacity-50 sm:h-14 sm:w-12 ${
+          className={`h-13 w-11 rounded-xl border bg-surface-1 text-center text-xl font-semibold text-ink-strong transition focus:bg-surface focus:outline-none disabled:opacity-50 sm:h-14 sm:w-12 ${
             invalid
-              ? "border-red-400/60"
-              : "border-white/12 focus:border-cyan-300/60 focus:bg-cyan-300/[0.06] focus:shadow-[0_0_0_1px_rgba(103,232,249,0.35),0_0_22px_rgba(103,232,249,0.18)]"
+              ? "border-signal-risk"
+              : "border-line-strong focus:border-brand-600 focus:shadow-[0_0_0_3px_rgba(10,108,158,0.14)]"
           }`}
         />
       ))}

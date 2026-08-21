@@ -6,29 +6,29 @@ import { Suspense } from "react";
 import AuthCrossLinks from "@/components/auth-cross-links";
 import AuthEntryScreen from "@/components/auth-entry-screen";
 
-export default function RecruiterAccessPage() {
+export default function RecruiterSignupPage() {
   return (
     <Suspense fallback={<div className="min-h-screen bg-surface-1" />}>
       <AuthEntryScreen
         intent="recruiter_login"
-        mode="login"
-        documentTitle="Recruiter Login | HireVeri"
+        mode="signup"
+        documentTitle="Create your recruiter account | HireVeri"
         sessionKey="hireveri_recruiter_email"
         badge="Recruiter access"
-        title="Log in to your Account"
-        subtitle="Welcome back! Select method to log in:"
+        title="Create your Account"
+        subtitle="Set up your hiring workspace. Select a method to get started:"
         emailPlaceholder="Work email address"
-        cta="Continue Securely and Verify"
-        hint="We'll send a 6-digit one-time verification code. No passwords."
+        cta="Create Account and Verify"
+        hint="We'll send a 6-digit one-time verification code to confirm it's you. No passwords to choose."
         invalidEmailMessage="Enter a valid work email address."
       >
         <AuthCrossLinks
-          prompt="Don't have an account?"
-          actionLabel="Create an account"
-          actionHref="/recruiter-signup"
+          prompt="Already have an account?"
+          actionLabel="Log in"
+          actionHref="/recruiter-access"
           secondaryPrompt="Practising for an interview?"
-          secondaryLabel="Go to Practice Room"
-          secondaryHref="/practice-access"
+          secondaryLabel="Create a practice account"
+          secondaryHref="/practice-signup"
         />
       </AuthEntryScreen>
     </Suspense>

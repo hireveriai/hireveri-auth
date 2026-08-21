@@ -1,43 +1,48 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useState, type FormEvent } from "react";
 
-import AuthShell from "@/components/auth-shell";
 import AuthSubmitButton from "@/components/auth-submit-button";
 import EmailField from "@/components/email-field";
 import SocialAuthButtons from "@/components/social-auth-buttons";
 
-type RecruiterIntent = "recruiter_login";
+export type AuthIntent = "recruiter_login" | "candidate_practice";
 
-const UI = {
-  badge: "RECRUITER ACCESS",
-  title: "Log in to your Account",
-  subtitle: "Welcome back! Select method to log in:",
-  emailPlaceholder: "Work email address",
-  cta: "Continue Securely and Verify",
+type EmailOtpFormProps = {
+  intent: AuthIntent;
+  /** Only used for copy and analytics — the OTP request is identical either
+   *  way, because a first-time email creates its identity on verification. */
+  mode: "login" | "signup";
+  emailPlaceholder: string;
+  cta: string;
+  hint: string;
+  invalidEmailMessage: string;
 };
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export default function RecruiterAccessClient() {
+export default function EmailOtpForm({
+  intent,
+  mode,
+  emailPlaceholder,
+  cta,
+  hint,
+  invalidEmailMessage,
+}: EmailOtpFormProps) {
   const router = useRouter();
-  const intent: RecruiterIntent = "recruiter_login";
   const next = useSearchParams().get("next");
+
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    document.title = "Recruiter Login | HireVeri";
-
-    sessionStorage.removeItem("hireveri_recruiter_email");
-  }, []);
-
   const normalizedEmail = email.trim();
   const isEmailValid = emailPattern.test(normalizedEmail);
+  const errorId = `${intent}-${mode}-email-error`;
+  const hintId = `${intent}-${mode}-email-hint`;
 
-  async function handleContinue(e?: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e?: FormEvent<HTMLFormElement>) {
     e?.preventDefault();
 
     if (loading) {
@@ -50,7 +55,7 @@ export default function RecruiterAccessClient() {
     }
 
     if (!isEmailValid) {
-      setError("Enter a valid work email address.");
+      setError(invalidEmailMessage);
       return;
     }
 
@@ -92,6 +97,7 @@ export default function RecruiterAccessClient() {
     verifyUrl.searchParams.set("identityId", data.identityId);
     verifyUrl.searchParams.set("email", normalizedEmail);
     verifyUrl.searchParams.set("intent", intent);
+    verifyUrl.searchParams.set("mode", mode);
 
     if (next) {
       verifyUrl.searchParams.set("next", next);
@@ -101,27 +107,12 @@ export default function RecruiterAccessClient() {
   }
 
   return (
-    <AuthShell
-      badge={UI.badge}
-      title={UI.title}
-      subtitle={UI.subtitle}
-      footer={
-        <>
-          Practising for an interview?{" "}
-          <a
-            href="/practice-access"
-            className="font-medium text-cyan-300 transition hover:text-cyan-200"
-          >
-            Go to Practice Room
-          </a>
-        </>
-      }
-    >
+    <>
       <SocialAuthButtons />
 
-      <form onSubmit={handleContinue} noValidate>
+      <form onSubmit={handleSubmit} noValidate>
         <EmailField
-          placeholder={UI.emailPlaceholder}
+          placeholder={emailPlaceholder}
           autoComplete="email"
           value={email}
           invalid={!!error}
@@ -131,15 +122,15 @@ export default function RecruiterAccessClient() {
               setError(null);
             }
           }}
-          aria-describedby={error ? "recruiter-email-error" : "recruiter-email-hint"}
+          aria-describedby={error ? errorId : hintId}
         />
 
-        <p id="recruiter-email-hint" className="mt-2.5 text-xs text-white/45">
-          We&apos;ll send a 6-digit one-time verification code. No passwords.
+        <p id={hintId} className="mt-2.5 text-xs text-ink-muted">
+          {hint}
         </p>
 
         {error ? (
-          <p id="recruiter-email-error" className="mt-3 text-sm text-red-400">
+          <p id={errorId} role="alert" className="mt-3 text-sm text-signal-risk">
             {error}
           </p>
         ) : null}
@@ -150,10 +141,10 @@ export default function RecruiterAccessClient() {
             loading={loading}
             loadingLabel="Sending code..."
           >
-            {UI.cta}
+            {cta}
           </AuthSubmitButton>
         </div>
       </form>
-    </AuthShell>
+    </>
   );
 }

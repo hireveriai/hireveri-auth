@@ -79,7 +79,7 @@ export default function LegalDocumentModal({ document: activeDocument, onClose }
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 py-6 backdrop-blur-sm sm:px-6"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(10,22,38,0.55)] px-4 py-6 backdrop-blur-sm sm:px-6"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) {
           onClose();
@@ -92,17 +92,17 @@ export default function LegalDocumentModal({ document: activeDocument, onClose }
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={descriptionId}
-        className="flex max-h-[88vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#111821] shadow-2xl"
+        className="flex max-h-[88vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-lg"
       >
-        <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-white/10 bg-[#111821]/95 px-5 py-4 backdrop-blur sm:px-7">
+        <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-line bg-surface/95 px-5 py-4 backdrop-blur sm:px-7">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-200/70">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand-600">
               Verixans Technologies Pvt Ltd
             </p>
-            <h2 id={titleId} className="mt-2 text-xl font-semibold tracking-tight text-white sm:text-2xl">
+            <h2 id={titleId} className="mt-2 text-xl font-semibold tracking-tight text-ink-strong sm:text-2xl">
               {activeDocument.title}
             </h2>
-            <p id={descriptionId} className="mt-1 text-sm text-white/55">
+            <p id={descriptionId} className="mt-1 text-sm text-ink-muted">
               Last Updated: {activeDocument.lastUpdated}
             </p>
           </div>
@@ -110,7 +110,7 @@ export default function LegalDocumentModal({ document: activeDocument, onClose }
             ref={closeButtonRef}
             type="button"
             onClick={onClose}
-            className="shrink-0 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm font-semibold text-white/75 transition hover:border-white/25 hover:bg-white/[0.07] hover:text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/50"
+            className="shrink-0 rounded-xl border border-line bg-surface px-3 py-2 text-sm font-semibold text-ink-muted transition hover:border-brand-300 hover:bg-surface-1 hover:text-ink-strong"
             aria-label={`Close ${activeDocument.title}`}
           >
             Close
@@ -118,23 +118,23 @@ export default function LegalDocumentModal({ document: activeDocument, onClose }
         </div>
 
         <div className="scroll-smooth overflow-y-auto px-5 py-5 sm:px-7 sm:py-6">
-          <p className="rounded-xl border border-cyan-300/10 bg-cyan-300/[0.04] px-4 py-4 text-sm leading-7 text-slate-200">
+          <p className="rounded-xl border border-brand-200 bg-brand-50 px-4 py-4 text-sm leading-7 text-ink">
             {activeDocument.intro}
           </p>
 
           <div className="mt-6 space-y-6">
             {activeDocument.sections.map((section) => (
-              <section key={section.title} className="border-t border-white/10 pt-5">
-                <h3 className="text-base font-semibold text-white">{section.title}</h3>
+              <section key={section.title} className="border-t border-line pt-5">
+                <h3 className="text-base font-semibold text-ink-strong">{section.title}</h3>
                 {section.paragraphs?.map((paragraph) => (
-                  <p key={paragraph} className="mt-3 text-sm leading-7 text-slate-300">
+                  <p key={paragraph} className="mt-3 text-sm leading-7 text-ink-muted">
                     {paragraph}
                   </p>
                 ))}
                 {section.bullets ? (
-                  <ul className="mt-3 space-y-2 pl-5 text-sm leading-6 text-slate-300">
+                  <ul className="mt-3 space-y-2 pl-5 text-sm leading-6 text-ink-muted">
                     {section.bullets.map((item) => (
-                      <li key={item} className="list-disc marker:text-cyan-200/60">
+                      <li key={item} className="list-disc marker:text-brand-600">
                         {item}
                       </li>
                     ))}

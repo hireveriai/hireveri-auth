@@ -24,10 +24,10 @@ function PhoneInputSkeleton() {
   return (
     <div className="grid grid-cols-[160px_1fr] gap-3">
       <div className="input animate-pulse">
-        <div className="h-6 rounded-md bg-white/6" />
+        <div className="h-6 rounded-md bg-surface-2" />
       </div>
       <div className="input animate-pulse">
-        <div className="h-6 rounded-md bg-white/6" />
+        <div className="h-6 rounded-md bg-surface-2" />
       </div>
     </div>
   );
@@ -92,15 +92,15 @@ export default function PhoneInput({
           onClick={() => setOpen((current) => !current)}
           className={`input flex items-center justify-between gap-3 ${
             disabled ? "opacity-60" : ""
-          } ${error ? "border-red-400/30 text-red-200" : ""}`.trim()}
+          } ${error ? "border-signal-risk text-signal-risk" : ""}`.trim()}
         >
           <span className="flex min-w-0 items-center gap-2">
             <span className="text-base">{selectedCountry?.flag || "🌐"}</span>
-            <span className="truncate text-sm text-white">
+            <span className="truncate text-sm text-ink-strong">
               {selectedCountry?.phoneCode || "+91"}
             </span>
           </span>
-          <span className="text-xs text-white/35">{open ? "▲" : "▼"}</span>
+          <span className="text-xs text-ink-muted">{open ? "▲" : "▼"}</span>
         </button>
 
         <input
@@ -115,17 +115,17 @@ export default function PhoneInput({
         />
       </div>
 
-      {error ? <p className="mt-2 text-xs text-red-300/85">{error}</p> : null}
+      {error ? <p className="mt-2 text-xs text-signal-risk">{error}</p> : null}
 
       {open ? (
-        <div className="absolute left-0 z-30 mt-2 w-[min(360px,calc(100vw-3rem))] overflow-hidden rounded-xl border border-white/10 bg-[#0d141c]/95 shadow-[0_24px_60px_rgba(2,8,15,0.55)] backdrop-blur-md">
-          <div className="border-b border-white/8 p-3">
+        <div className="absolute left-0 z-30 mt-2 w-[min(360px,calc(100vw-3rem))] overflow-hidden rounded-xl border border-line bg-surface shadow-lg backdrop-blur-md">
+          <div className="border-b border-line p-3">
             <input
               autoFocus
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search countries"
-              className="input !bg-black/30 !py-2 text-sm"
+              className="input !bg-surface-2 !py-2 text-sm"
             />
           </div>
 
@@ -140,28 +140,28 @@ export default function PhoneInput({
                     setOpen(false);
                     setQuery("");
                   }}
-                  className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left transition hover:bg-white/7 ${
-                    country.isoCode === selectedCountry?.isoCode ? "bg-white/8" : ""
+                  className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left transition hover:bg-surface-2 ${
+                    country.isoCode === selectedCountry?.isoCode ? "bg-brand-50" : ""
                   }`.trim()}
                 >
                   <span className="flex min-w-0 items-center gap-3">
                     <span className="text-base">{country.flag || "🌐"}</span>
                     <span className="min-w-0">
-                      <span className="block truncate text-sm text-white">
+                      <span className="block truncate text-sm text-ink-strong">
                         {country.name}
                       </span>
-                      <span className="block truncate text-xs text-white/45">
+                      <span className="block truncate text-xs text-ink-muted">
                         {country.isoCode}
                       </span>
                     </span>
                   </span>
-                  <span className="shrink-0 text-xs text-cyan-100/80">
+                  <span className="shrink-0 text-xs text-brand-600">
                     {country.phoneCode}
                   </span>
                 </button>
               ))
             ) : (
-              <div className="px-3 py-4 text-sm text-white/45">
+              <div className="px-3 py-4 text-sm text-ink-muted">
                 No countries found.
               </div>
             )}

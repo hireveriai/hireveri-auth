@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getRecruiterAccessUrl } from "@/lib/app-urls";
+import BrandLogo from "@/components/brand-logo";
 import RecruiterVisualPreview from "@/components/RecruiterVisualPreview";
 import SearchableSelect, {
   type SearchableSelectOption,
@@ -314,30 +315,38 @@ export default function RecruiterOnboardingPage() {
   }
 
   return (
-    <main className="min-h-screen w-full bg-[radial-gradient(ellipse_at_top,_rgba(34,211,238,0.12),_transparent_60%)]">
-      <div className="mx-auto max-w-7xl px-10 pb-10 pt-5">
+    <main className="min-h-screen w-full bg-surface-1">
+      <div className="mx-auto max-w-7xl px-6 pb-14 pt-8 sm:px-10">
+        <div className="mb-10">
+          <BrandLogo priority />
+        </div>
+
         <div className="grid items-start gap-14 lg:grid-cols-2">
           <section className="flex flex-col justify-start">
             <div className="mb-10">
               <RecruiterVisualPreview />
             </div>
 
-            <h2 className="mb-4 text-3xl font-semibold text-white">
+            <span className="mb-4 inline-flex w-fit rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-700">
+              Final step
+            </span>
+
+            <h2 className="mb-4 text-3xl font-semibold tracking-tight text-ink-strong">
               Configure your hiring workspace
             </h2>
 
-            <p className="mb-6 max-w-md text-white/70">
+            <p className="mb-6 max-w-md text-ink-muted">
               We&apos;ll use this information to set up a secure, global-ready
               environment for conducting and evaluating interviews.
             </p>
 
-            <ul className="space-y-2 text-sm text-white/65">
+            <ul className="space-y-2 text-sm text-ink-muted">
               <li>Your recruiter profile</li>
               <li>Your company hiring workspace</li>
               <li>Secure interview and evaluation access</li>
             </ul>
 
-            <p className="mt-6 text-xs text-white/40">
+            <p className="mt-6 text-xs text-ink-muted">
               Secure onboarding · Global-ready · Enterprise-grade
             </p>
           </section>
@@ -345,31 +354,24 @@ export default function RecruiterOnboardingPage() {
           <section>
             <form
               onSubmit={handleCreateWorkspace}
-              className="
-                w-full max-w-lg
-                min-h-[640px]
-                rounded-2xl border border-cyan-400/20
-                bg-gradient-to-b from-[#0F1F2A]/90 to-[#0A1016]/90
-                p-8
-                shadow-[0_0_60px_rgba(34,211,238,0.12)]
-              "
+              className="w-full max-w-lg rounded-[24px] border border-line bg-surface p-8 shadow-lg"
             >
-              <h3 className="mb-1 text-2xl font-semibold text-white">
+              <h3 className="mb-1 text-2xl font-semibold text-ink-strong">
                 Set up your recruiter profile
               </h3>
-              <p className="mb-6 text-sm text-white/60">
+              <p className="mb-6 text-sm text-ink-muted">
                 This information helps us configure your hiring workspace.
               </p>
 
               <div className="mb-6">
-                <p className="mb-3 text-xs uppercase tracking-wide text-white/50">
+                <p className="mb-3 text-xs uppercase tracking-wide text-ink-muted">
                   Personal information
                 </p>
 
                 <div className="mb-4 grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-xs text-white/60">
-                      First name <span className="text-cyan-400">*</span>
+                    <label className="text-xs text-ink-muted">
+                      First name <span className="text-brand-600">*</span>
                     </label>
                     <input
                       className="input mt-1"
@@ -379,8 +381,8 @@ export default function RecruiterOnboardingPage() {
                   </div>
 
                   <div>
-                    <label className="text-xs text-white/60">
-                      Last name <span className="text-cyan-400">*</span>
+                    <label className="text-xs text-ink-muted">
+                      Last name <span className="text-brand-600">*</span>
                     </label>
                     <input
                       className="input mt-1"
@@ -391,7 +393,7 @@ export default function RecruiterOnboardingPage() {
                 </div>
 
                 <div className="mb-4">
-                  <label className="text-xs text-white/60">Work email</label>
+                  <label className="text-xs text-ink-muted">Work email</label>
                   <input
                     className="input mt-1 cursor-not-allowed opacity-60"
                     value={emailLoading ? "Loading..." : email}
@@ -411,13 +413,13 @@ export default function RecruiterOnboardingPage() {
               </div>
 
               <div className="mb-8">
-                <p className="mb-3 text-xs uppercase tracking-wide text-white/50">
+                <p className="mb-3 text-xs uppercase tracking-wide text-ink-muted">
                   Organization information
                 </p>
 
                 <div className="mb-4">
-                  <label className="text-xs text-white/60">
-                    Company name <span className="text-cyan-400">*</span>
+                  <label className="text-xs text-ink-muted">
+                    Company name <span className="text-brand-600">*</span>
                   </label>
                   <input
                     className="input mt-1"
@@ -459,12 +461,12 @@ export default function RecruiterOnboardingPage() {
                 </div>
               </div>
 
-              {error ? <p className="mb-3 text-sm text-red-400">{error}</p> : null}
+              {error ? <p className="mb-3 text-sm text-signal-risk">{error}</p> : null}
 
               <button
                 type="submit"
                 disabled={loading || emailLoading}
-                className="w-full rounded-xl bg-cyan-500 py-3 font-semibold text-black transition hover:bg-cyan-400 disabled:opacity-50"
+                className="w-full rounded-xl bg-brand-600 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-brand-600/40 disabled:shadow-none"
               >
                 {loading ? "Creating Workspace..." : "Create Hiring Workspace"}
               </button>

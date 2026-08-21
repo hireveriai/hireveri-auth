@@ -4,30 +4,46 @@ import Link from "next/link";
 type BrandLogoProps = {
   className?: string;
   href?: string;
-  imageClassName?: string;
+  /** Hide the wordmark and show the chip alone (tight layouts). */
+  markOnly?: boolean;
   priority?: boolean;
 };
 
 export default function BrandLogo({
   className = "",
   href = "/",
-  imageClassName = "h-12 w-auto",
+  markOnly = false,
   priority = false,
 }: BrandLogoProps) {
   return (
     <Link
       href={href}
       aria-label="HireVeri"
-      className={`inline-flex items-center ${className}`.trim()}
+      className={`inline-flex items-center gap-2.5 ${className}`.trim()}
     >
-      <Image
-        src="/hireveri_logo.png"
-        alt="HireVeri"
-        width={1536}
-        height={1024}
-        priority={priority}
-        className={imageClassName}
-      />
+      {/* The glyph is white, so it needs the navy chip to read on a light page.
+          The 126% scale crops the transparent padding baked into the asset. */}
+      <span className="hv-logo-chip relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden">
+        <Image
+          src="/hireveri_logo_white.png"
+          alt=""
+          width={180}
+          height={180}
+          priority={priority}
+          className="h-[126%] w-[126%] max-w-none shrink-0 object-contain"
+        />
+      </span>
+
+      {markOnly ? null : (
+        <span className="flex flex-col justify-center">
+          <span className="text-[1.05rem] font-semibold tracking-[0.04em] text-ink-strong">
+            HireVeri
+          </span>
+          <span className="text-[0.6875rem] font-medium text-ink-muted">
+            Structured Interview Intelligence
+          </span>
+        </span>
+      )}
     </Link>
   );
 }
