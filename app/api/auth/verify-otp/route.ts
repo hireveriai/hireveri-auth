@@ -279,13 +279,19 @@ export async function POST(req: Request) {
       );
     }
 
+    // Retire every active session for this identity, not just expired ones.
+    // ux_signup_session_per_identity allows a single active recruiter session
+    // (auth_intent_id = 2) per identity, and sessions live for 30 days — so
+    // leaving a live one in place made the next sign-in collide with the
+    // unique index, which rolled the whole verification back.
+    // Safe here: the submitted code has already been matched above, so a wrong
+    // code returns 401 before reaching this point.
     await pool.query(
       `
       UPDATE public.auth_sessions
       SET is_active = false
       WHERE identity_id = $1::uuid
         AND is_active = true
-        AND expires_at <= now()
       `,
       [identityId]
     );

@@ -23,7 +23,7 @@ export default function AuthShell({
   size = "default",
   children,
 }: AuthShellProps) {
-  const cardWidth = size === "wide" ? "max-w-[1140px]" : "max-w-[1040px]";
+  const cardWidth = size === "wide" ? "max-w-[1180px]" : "max-w-[1120px]";
   const columnWidth = size === "wide" ? "max-w-[460px]" : "max-w-[360px]";
 
   return (

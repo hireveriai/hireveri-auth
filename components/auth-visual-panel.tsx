@@ -5,35 +5,35 @@ import { useEffect, useState } from "react";
 
 const SLIDE_MS = 6000;
 
+/** Intrinsic size of the artwork — 16:9, served as WebP. */
+const IMAGE_WIDTH = 1200;
+const IMAGE_HEIGHT = 675;
+
 /**
- * Each artwork is a finished slide — it carries its own heading and body copy —
- * so the panel adds no text of its own. The files are portrait (~411x844) and
- * their copy runs to both edges, so they are never cropped: the frame keeps the
- * source aspect ratio and is capped in height so it cannot stretch the card.
+ * Each artwork is a finished slide carrying its own heading and body copy, so
+ * the panel adds no text of its own. They run edge to edge: the copy baked into
+ * them is small, and any inset would shrink it further.
  */
 const slides = [
   {
+    id: "human",
+    image: "/Image1.webp",
+    alt: "AI + Human Intelligence. AI provides objective insights and evidence, while final decisions remain in the hands of recruiters.",
+    label: "AI + Human Intelligence",
+  },
+  {
     id: "secure",
-    image: "/Image1.png",
-    alt: "Secure and private: enterprise-grade security with end-to-end encryption, so your data stays protected at every step.",
+    image: "/Image2.webp",
+    alt: "Secure and Private. Enterprise-grade security with end-to-end encryption; your data stays protected at every step.",
     label: "Secure & Private",
   },
   {
     id: "structured",
-    image: "/Image2.png",
-    alt: "Structured and fair: every candidate gets the same competency-mapped questions in the same order, scored consistently.",
+    image: "/Image3.webp",
+    alt: "Structured and Fair. Every candidate gets the same set of competency-mapped questions in the same order, scored consistently.",
     label: "Structured & Fair",
   },
-  {
-    id: "human",
-    image: "/Image3.png",
-    alt: "AI plus human intelligence: AI provides objective insights and evidence, while final decisions remain with recruiters.",
-    label: "AI + Human Intelligence",
-  },
 ];
-
-const IMAGE_WIDTH = 411;
-const IMAGE_HEIGHT = 844;
 
 export default function AuthVisualPanel() {
   const [active, setActive] = useState(0);
@@ -61,27 +61,26 @@ export default function AuthVisualPanel() {
       aria-label="What HireVeri does"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
-      className="relative hidden flex-col items-center justify-between gap-5 border-r border-line bg-gradient-to-b from-brand-50 to-surface-2 px-8 py-8 lg:flex"
+      className="relative hidden flex-col justify-center gap-6 border-r border-line bg-surface-1 py-8 lg:flex"
     >
-      <span className="inline-flex w-fit rounded-full border border-brand-200 bg-surface px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-700">
+      <span className="mx-8 inline-flex w-fit rounded-full border border-brand-200 bg-surface px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-700">
         HireVeri Intelligence
       </span>
 
       {/* One grid cell holds every slide, so the panel keeps a constant height
-          and the artwork crossfades without any layout shift. */}
+          and the artwork crossfades without any layout shift. The frame owns the
+          16:9 ratio, so space is reserved before the image decodes and the art
+          is shown whole — never cropped, never stretched. */}
       <div className="grid">
         {slides.map((slide, index) => (
           <div
             key={slide.id}
-            className="hv-slide col-start-1 row-start-1 flex items-center justify-center"
+            className="hv-slide col-start-1 row-start-1"
             data-active={index === active}
             aria-hidden={index !== active}
           >
-            {/* The frame carries the source aspect ratio and a fixed height, so
-                layout is reserved before the image decodes and the artwork is
-                shown whole — never cropped, never stretched. */}
             <div
-              className="relative h-[min(58vh,440px)] overflow-hidden rounded-2xl border border-line bg-surface shadow-sm"
+              className="relative w-full"
               style={{ aspectRatio: `${IMAGE_WIDTH} / ${IMAGE_HEIGHT}` }}
             >
               <Image
@@ -90,7 +89,7 @@ export default function AuthVisualPanel() {
                 fill
                 priority={index === 0}
                 loading="eager"
-                sizes="(min-width: 1024px) 260px, 100vw"
+                sizes="(min-width: 1024px) 50vw, 100vw"
                 className="object-contain"
               />
             </div>
@@ -98,7 +97,7 @@ export default function AuthVisualPanel() {
         ))}
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="mx-8 flex items-center gap-2">
         {slides.map((slide, index) => (
           <button
             key={slide.id}
