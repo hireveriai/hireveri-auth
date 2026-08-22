@@ -1,3 +1,5 @@
+import { rewriteLegacyDomain } from "@/lib/legacy-domain";
+
 const PRODUCTION_RECRUITER_AUTH_ORIGIN = "https://auth.verisnova.com";
 const PRODUCTION_PRACTICE_AUTH_ORIGIN = "https://auth.verisnova.com";
 
@@ -7,14 +9,12 @@ function normalizeOrigin(value?: string | null) {
   }
 
   try {
-    const url = new URL(value);
+    /* Carry retired verihireai.work origins forward first, so the www
+       collapse below only has one domain family left to handle. */
+    const url = new URL(rewriteLegacyDomain(value, "auth origin"));
 
     if (url.hostname === "www.auth.verisnova.com") {
       url.hostname = "auth.verisnova.com";
-    }
-
-    if (url.hostname === "www.auth.verihireai.work") {
-      url.hostname = "auth.verihireai.work";
     }
 
     return url.origin;

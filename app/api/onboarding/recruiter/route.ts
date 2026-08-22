@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
+import { readAppUrlEnv } from "@/lib/legacy-domain";
 import { getPool } from "@/lib/db-admin";
 import { sendEmail } from "@/lib/email";
 import { requireSession } from "@/lib/session/requireSession";
 import { fallbackRecruiterRoles } from "@/lib/pools/fallback-pools";
 
 const recruiterApp =
-  process.env.RECRUITER_APP_URL || "https://recruiter.verisnova.com";
-const recruiterAppTemplate = process.env.RECRUITER_APP_URL_TEMPLATE;
+  readAppUrlEnv("RECRUITER_APP_URL") || "https://recruiter.verisnova.com";
+const recruiterAppTemplate = readAppUrlEnv("RECRUITER_APP_URL_TEMPLATE");
 const organizationSignupAlertRecipient =
   process.env.ORGANIZATION_SIGNUP_ALERT_EMAIL || "jatin.singh@verisnova.com";
 

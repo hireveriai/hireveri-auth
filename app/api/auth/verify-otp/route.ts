@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { readAppUrlEnv } from "@/lib/legacy-domain";
 import { getPool } from "@/lib/db-admin";
 import {
   getCandidateOnboardingUrl,
@@ -13,8 +14,8 @@ import {
 import { getPracticeCandidateDashboardUrl } from "@/lib/practice-candidate-url";
 
 const recruiterApp =
-  process.env.RECRUITER_APP_URL || "https://recruiter.verisnova.com";
-const recruiterAppTemplate = process.env.RECRUITER_APP_URL_TEMPLATE;
+  readAppUrlEnv("RECRUITER_APP_URL") || "https://recruiter.verisnova.com";
+const recruiterAppTemplate = readAppUrlEnv("RECRUITER_APP_URL_TEMPLATE");
 const AUTH_COOKIE_NAMES = [
   "hireveri_session",
   "authToken",

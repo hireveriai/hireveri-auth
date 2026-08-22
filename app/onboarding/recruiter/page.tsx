@@ -2,17 +2,26 @@
 
 import { useEffect, useState } from "react";
 import { getRecruiterAccessUrl } from "@/lib/app-urls";
+import { rewriteLegacyDomain } from "@/lib/legacy-domain";
 import AuthShell from "@/components/auth-shell";
 import SearchableSelect, {
   type SearchableSelectOption,
 } from "@/components/searchable-select";
 import PhoneInput, { type PhoneCountryOption } from "@/components/phone-input";
 
+/* Client component: NEXT_PUBLIC_* values are inlined at build time by static
+   analysis of `process.env.NEXT_PUBLIC_X`, so these must stay literal reads.
+   rewriteLegacyDomain() is applied to the value rather than the lookup - a
+   dynamic process.env[name] here would compile to undefined in the browser. */
 const recruiterAppUrl =
-  process.env.NEXT_PUBLIC_RECRUITER_APP_URL ||
-  "https://recruiter.verisnova.com";
-const recruiterAppUrlTemplate =
-  process.env.NEXT_PUBLIC_RECRUITER_APP_URL_TEMPLATE;
+  rewriteLegacyDomain(
+    process.env.NEXT_PUBLIC_RECRUITER_APP_URL,
+    "NEXT_PUBLIC_RECRUITER_APP_URL"
+  ) || "https://recruiter.verisnova.com";
+const recruiterAppUrlTemplate = rewriteLegacyDomain(
+  process.env.NEXT_PUBLIC_RECRUITER_APP_URL_TEMPLATE,
+  "NEXT_PUBLIC_RECRUITER_APP_URL_TEMPLATE"
+);
 const recruiterAuthAccessUrl = getRecruiterAccessUrl(
   process.env.NEXT_PUBLIC_RECRUITER_AUTH_APP_URL ||
     process.env.NEXT_PUBLIC_AUTH_APP_URL
