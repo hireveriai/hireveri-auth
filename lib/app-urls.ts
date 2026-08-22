@@ -84,3 +84,19 @@ export function getCandidateOnboardingUrl(configuredOrigin?: string | null) {
     "/onboarding/candidate"
   );
 }
+
+/**
+ * Where the auth screens send someone who backs out - the marketing site.
+ *
+ * Read as a literal `process.env.NEXT_PUBLIC_*` expression because AuthShell
+ * renders in client components, and Next only inlines these when it can see
+ * the property access statically.
+ */
+export function getMarketingSiteUrl() {
+  return (
+    rewriteLegacyDomain(
+      process.env.NEXT_PUBLIC_MARKETING_SITE_URL,
+      "NEXT_PUBLIC_MARKETING_SITE_URL"
+    ) || "https://www.verisnova.com"
+  );
+}

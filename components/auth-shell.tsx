@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import BrandLogo from "@/components/brand-logo";
 import AuthVisualPanel from "@/components/auth-visual-panel";
+import { getMarketingSiteUrl } from "@/lib/app-urls";
 
 type AuthShellProps = {
   badge?: string;
@@ -36,10 +37,16 @@ export default function AuthShell({
         <AuthVisualPanel />
 
         <div className="flex flex-col justify-center px-6 py-7 sm:px-9">
-          <div className={`mx-auto w-full ${columnWidth}`}>
-            <div className="mb-5 flex items-center justify-between gap-4">
-              <BrandLogo priority />
+          {/* The header spans the panel rather than the narrower centred
+              content column. Inside the column the lockup started at the
+              form's left edge, which - with a gutter either side - read as
+              floating in the middle. Against the panel's padding edge it
+              reads as a header, and it puts the close control in the
+              top-right corner where people look for it. */}
+          <div className="mb-5 flex items-center justify-between gap-3">
+            <BrandLogo priority />
 
+            <div className="flex shrink-0 items-center gap-2">
               {onBack ? (
                 <button
                   type="button"
@@ -53,8 +60,25 @@ export default function AuthShell({
                   </svg>
                 </button>
               ) : null}
-            </div>
 
+              {/* A real link, not a window.close() - these screens are
+                  usually opened by navigation rather than script, so
+                  window.close() is a no-op and would leave people stuck. */}
+              <a
+                href={getMarketingSiteUrl()}
+                aria-label="Close and return to the VerisNova home page"
+                title="Return to VerisNova"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-line text-ink-muted transition hover:border-brand-300 hover:text-brand-700"
+              >
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M18 6 6 18" />
+                  <path d="m6 6 12 12" />
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          <div className={`mx-auto w-full ${columnWidth}`}>
             {badge ? (
               <span className="mb-3 inline-flex rounded-full border border-brand-200 bg-brand-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-700">
                 {badge}
