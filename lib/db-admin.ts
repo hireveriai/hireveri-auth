@@ -51,6 +51,19 @@ function normalizeConnectionString(rawConnectionString: string) {
       url.port = "6543";
     }
 
+    /* Drop libpq-style SSL params. node-postgres parses sslmode out of the
+       connection string and lets it win over the explicit `ssl` option, so a
+       URL carrying sslmode=require - which is exactly what the Supabase
+       dashboard hands you - forces strict chain validation and fails against
+       the pooler's certificate with SELF_SIGNED_CERT_IN_CHAIN. TLS is still
+       on; resolveSsl() supplies { rejectUnauthorized: false } instead. The
+       recruiter pool has always stripped these; auth had not, so a correctly
+       configured DATABASE_URL still could not connect. */
+    url.searchParams.delete("sslmode");
+    url.searchParams.delete("sslcert");
+    url.searchParams.delete("sslkey");
+    url.searchParams.delete("sslrootcert");
+
     return url.toString();
   } catch {
     return trimmed;
