@@ -1,5 +1,5 @@
-const PRODUCTION_RECRUITER_AUTH_ORIGIN = "https://auth.hireveri.com";
-const PRODUCTION_PRACTICE_AUTH_ORIGIN = "https://auth.hireveri.com";
+const PRODUCTION_RECRUITER_AUTH_ORIGIN = "https://auth.verisnova.com";
+const PRODUCTION_PRACTICE_AUTH_ORIGIN = "https://auth.verisnova.com";
 
 function normalizeOrigin(value?: string | null) {
   if (!value) {
@@ -9,8 +9,8 @@ function normalizeOrigin(value?: string | null) {
   try {
     const url = new URL(value);
 
-    if (url.hostname === "www.auth.hireveri.com") {
-      url.hostname = "auth.hireveri.com";
+    if (url.hostname === "www.auth.verisnova.com") {
+      url.hostname = "auth.verisnova.com";
     }
 
     if (url.hostname === "www.auth.verihireai.work") {

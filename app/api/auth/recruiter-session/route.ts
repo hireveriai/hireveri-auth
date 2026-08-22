@@ -9,10 +9,10 @@ type RecruiterSessionPayload = {
 };
 
 declare global {
-  var __hireveriRecruiterSessionCache:
+  var __verisnovaRecruiterSessionCache:
     | Map<string, { expiresAt: number; payload: RecruiterSessionPayload }>
     | undefined;
-  var __hireveriRecruiterSessionInFlight:
+  var __verisnovaRecruiterSessionInFlight:
     | Map<string, Promise<RecruiterSessionPayload | null>>
     | undefined;
 }
@@ -53,19 +53,19 @@ function parseCookieHeader(cookieHeader: string | null): Record<string, string> 
 }
 
 function getSessionCache() {
-  if (!global.__hireveriRecruiterSessionCache) {
-    global.__hireveriRecruiterSessionCache = new Map();
+  if (!global.__verisnovaRecruiterSessionCache) {
+    global.__verisnovaRecruiterSessionCache = new Map();
   }
 
-  return global.__hireveriRecruiterSessionCache;
+  return global.__verisnovaRecruiterSessionCache;
 }
 
 function getInFlightMap() {
-  if (!global.__hireveriRecruiterSessionInFlight) {
-    global.__hireveriRecruiterSessionInFlight = new Map();
+  if (!global.__verisnovaRecruiterSessionInFlight) {
+    global.__verisnovaRecruiterSessionInFlight = new Map();
   }
 
-  return global.__hireveriRecruiterSessionInFlight;
+  return global.__verisnovaRecruiterSessionInFlight;
 }
 
 function getCachedSession(sessionId: string) {

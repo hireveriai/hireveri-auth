@@ -13,7 +13,7 @@ import {
 import { getPracticeCandidateDashboardUrl } from "@/lib/practice-candidate-url";
 
 const recruiterApp =
-  process.env.RECRUITER_APP_URL || "https://recruiter.hireveri.com";
+  process.env.RECRUITER_APP_URL || "https://recruiter.verisnova.com";
 const recruiterAppTemplate = process.env.RECRUITER_APP_URL_TEMPLATE;
 const AUTH_COOKIE_NAMES = [
   "hireveri_session",
@@ -22,7 +22,7 @@ const AUTH_COOKIE_NAMES = [
   "access_token",
   "token",
 ];
-const AUTH_COOKIE_DOMAINS = [".hireveri.com", ".verihireai.work"];
+const AUTH_COOKIE_DOMAINS = [".verisnova.com", ".hireveri.com", ".verihireai.work"];
 const USE_RECRUITER_QUERY_HANDOFF =
   process.env.RECRUITER_QUERY_HANDOFF === "true";
 

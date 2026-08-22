@@ -12,8 +12,8 @@ export default function RecruiterSignupPage() {
       <AuthEntryScreen
         intent="recruiter_login"
         mode="signup"
-        documentTitle="Create your recruiter account | HireVeri"
-        sessionKey="hireveri_recruiter_email"
+        documentTitle="Create your recruiter account | VerisNova"
+        sessionKey="verisnova_recruiter_email"
         badge="Recruiter access"
         title="Create your Account"
         subtitle="Set up your hiring workspace. Select a method to get started:"

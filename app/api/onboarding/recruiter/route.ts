@@ -5,10 +5,10 @@ import { requireSession } from "@/lib/session/requireSession";
 import { fallbackRecruiterRoles } from "@/lib/pools/fallback-pools";
 
 const recruiterApp =
-  process.env.RECRUITER_APP_URL || "https://recruiter.hireveri.com";
+  process.env.RECRUITER_APP_URL || "https://recruiter.verisnova.com";
 const recruiterAppTemplate = process.env.RECRUITER_APP_URL_TEMPLATE;
 const organizationSignupAlertRecipient =
-  process.env.ORGANIZATION_SIGNUP_ALERT_EMAIL || "jatin.singh@hireveri.com";
+  process.env.ORGANIZATION_SIGNUP_ALERT_EMAIL || "jatin.singh@verisnova.com";
 
 function buildRecruiterAppUrl(params: {
   organizationId?: string | null;
@@ -122,7 +122,7 @@ function buildOrganizationSignupEmail(params: {
   ] as const;
 
   const text = [
-    "A new HireVeri organization signed up.",
+    "A new VerisNova organization signed up.",
     "",
     ...details.map(([label, value]) => `${label}: ${formatDetailValue(value)}`),
   ].join("\n");
@@ -140,12 +140,12 @@ function buildOrganizationSignupEmail(params: {
 
   return {
     to: organizationSignupAlertRecipient,
-    subject: `New HireVeri organization signup: ${params.companyName}`,
+    subject: `New VerisNova organization signup: ${params.companyName}`,
     text,
     idempotencyKey: `organization-signup-${params.organizationId || params.email}`,
     html: `
       <div style="font-family:Arial,sans-serif;color:#0f172a">
-        <h2>New HireVeri organization signup</h2>
+        <h2>New VerisNova organization signup</h2>
         <p>A new organization has completed recruiter onboarding.</p>
         <table style="border-collapse:collapse;width:100%;max-width:720px">${rows}</table>
       </div>

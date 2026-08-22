@@ -12,8 +12,8 @@ export default function PracticeSignupPage() {
       <AuthEntryScreen
         intent="candidate_practice"
         mode="signup"
-        documentTitle="Create your practice account | HireVeri"
-        sessionKey="hireveri_candidate_email"
+        documentTitle="Create your practice account | VerisNova"
+        sessionKey="verisnova_candidate_email"
         badge="Practice access"
         title="Create your Account"
         subtitle="Practise interviews on your own terms. Select a method to get started:"
@@ -26,7 +26,7 @@ export default function PracticeSignupPage() {
           prompt="Already have an account?"
           actionLabel="Log in"
           actionHref="/practice-access"
-          secondaryPrompt="Hiring with HireVeri?"
+          secondaryPrompt="Hiring with VerisNova?"
           secondaryLabel="Create a recruiter account"
           secondaryHref="/recruiter-signup"
         />

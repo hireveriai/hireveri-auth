@@ -12,8 +12,8 @@ export default function RecruiterAccessPage() {
       <AuthEntryScreen
         intent="recruiter_login"
         mode="login"
-        documentTitle="Recruiter Login | HireVeri"
-        sessionKey="hireveri_recruiter_email"
+        documentTitle="Recruiter Login | VerisNova"
+        sessionKey="verisnova_recruiter_email"
         badge="Recruiter access"
         title="Log in to your Account"
         subtitle="Welcome back! Select method to log in:"

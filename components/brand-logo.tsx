@@ -18,14 +18,14 @@ export default function BrandLogo({
   return (
     <Link
       href={href}
-      aria-label="HireVeri"
+      aria-label="VerisNova"
       className={`inline-flex items-center gap-2.5 ${className}`.trim()}
     >
       {/* The glyph is white, so it needs the navy chip to read on a light page.
           The 126% scale crops the transparent padding baked into the asset. */}
       <span className="hv-logo-chip relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden">
         <Image
-          src="/hireveri_logo_white.png"
+          src="/verisnova_logo_white.png"
           alt=""
           width={180}
           height={180}
@@ -37,7 +37,7 @@ export default function BrandLogo({
       {markOnly ? null : (
         <span className="flex flex-col justify-center">
           <span className="text-[0.95rem] font-semibold leading-tight tracking-[0.03em] text-ink-strong">
-            HireVeri
+            VerisNova
           </span>
           <span className="mt-0.5 text-[0.65rem] font-medium leading-tight text-ink-muted">
             Structured Interview Intelligence

@@ -210,7 +210,7 @@ export default function VerifyOtpClient() {
               className="mt-0.5 h-4 w-4 shrink-0 rounded border-line-strong accent-brand-600"
             />
             <span>
-              I agree to HireVeri&apos;s{" "}
+              I agree to VerisNova&apos;s{" "}
               <button
                 type="button"
                 onClick={() => setOpenLegalDocument("terms")}

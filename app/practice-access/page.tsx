@@ -12,8 +12,8 @@ export default function PracticeAccessPage() {
       <AuthEntryScreen
         intent="candidate_practice"
         mode="login"
-        documentTitle="Practice Candidate Login | HireVeri"
-        sessionKey="hireveri_candidate_email"
+        documentTitle="Practice Candidate Login | VerisNova"
+        sessionKey="verisnova_candidate_email"
         badge="Practice access"
         title="Log in to Practice Room"
         subtitle="Welcome back! Select method to log in:"
@@ -26,7 +26,7 @@ export default function PracticeAccessPage() {
           prompt="Don't have an account?"
           actionLabel="Create an account"
           actionHref="/practice-signup"
-          secondaryPrompt="Hiring with HireVeri?"
+          secondaryPrompt="Hiring with VerisNova?"
           secondaryLabel="Recruiter login"
           secondaryHref="/recruiter-access"
         />

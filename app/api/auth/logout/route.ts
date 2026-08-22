@@ -10,7 +10,7 @@ const AUTH_COOKIE_NAMES = [
   "access_token",
   "token",
 ];
-const COOKIE_DOMAINS = [undefined, ".hireveri.com", ".verihireai.work"];
+const COOKIE_DOMAINS = [undefined, ".verisnova.com", ".hireveri.com", ".verihireai.work"];
 
 function getSafeNextPath(req: Request) {
   const next = new URL(req.url).searchParams.get("next");

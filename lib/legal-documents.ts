@@ -16,14 +16,14 @@ export const PRIVACY_VERSION = "2026-05"
 export const legalDocuments: Record<LegalDocument["id"], LegalDocument> = {
   terms: {
     id: "terms",
-    title: "HireVeri Terms of Service",
+    title: "VerisNova Terms of Service",
     lastUpdated: "May 2026",
     intro:
-      "HireVeri is a product operated by Verixans Technologies Pvt Ltd (\"Verixans\", \"HireVeri\", \"we\", \"our\", or \"us\"). By accessing or using HireVeri services, recruiter workspace, screening systems, interview intelligence infrastructure, evidence review tools, or related services, you agree to these Terms of Service.",
+      "VerisNova is a product operated by Verixans Technologies Pvt Ltd (\"Verixans\", \"VerisNova\", \"we\", \"our\", or \"us\"). By accessing or using VerisNova services, recruiter workspace, screening systems, interview intelligence infrastructure, evidence review tools, or related services, you agree to these Terms of Service.",
     sections: [
       {
         title: "1. Service Overview",
-        paragraphs: ["HireVeri provides:"],
+        paragraphs: ["VerisNova provides:"],
         bullets: [
           "AI-assisted interview infrastructure",
           "Candidate screening systems",
@@ -37,7 +37,7 @@ export const legalDocuments: Record<LegalDocument["id"], LegalDocument> = {
         title: "2. Organization Responsibility",
         paragraphs: [
           "The platform is intended for lawful recruitment, evaluation, and hiring workflows.",
-          "Organizations using HireVeri are responsible for:",
+          "Organizations using VerisNova are responsible for:",
         ],
         bullets: [
           "ensuring lawful hiring practices",
@@ -50,7 +50,7 @@ export const legalDocuments: Record<LegalDocument["id"], LegalDocument> = {
       {
         title: "3. AI & Behavioral Analysis Disclaimer",
         paragraphs: [
-          "HireVeri may generate interview summaries, behavioral insights, structured hiring recommendations, review indicators, and competency observations.",
+          "VerisNova may generate interview summaries, behavioral insights, structured hiring recommendations, review indicators, and competency observations.",
           "These outputs are intended to support recruiter review and should not be treated as sole legal or employment determinations. Final hiring decisions remain the responsibility of the organization.",
         ],
       },
@@ -86,7 +86,7 @@ export const legalDocuments: Record<LegalDocument["id"], LegalDocument> = {
       {
         title: "7. Data Retention",
         paragraphs: [
-          "HireVeri may retain interview records, transcripts, behavioral evidence, billing records, audit logs, and recruiter activity history.",
+          "VerisNova may retain interview records, transcripts, behavioral evidence, billing records, audit logs, and recruiter activity history.",
           "Retention periods may vary based on organization settings, operational requirements, compliance needs, and platform policies.",
         ],
       },
@@ -112,24 +112,24 @@ export const legalDocuments: Record<LegalDocument["id"], LegalDocument> = {
       },
       {
         title: "11. Changes to Terms",
-        paragraphs: ["We may update these Terms periodically. Continued use of HireVeri after updates constitutes acceptance of the revised Terms."],
+        paragraphs: ["We may update these Terms periodically. Continued use of VerisNova after updates constitutes acceptance of the revised Terms."],
       },
       {
         title: "12. Contact",
-        paragraphs: ["Verixans Technologies Pvt Ltd", "HireVeri Platform Operations", "Support: support@hireveri.com"],
+        paragraphs: ["Verixans Technologies Pvt Ltd", "VerisNova Platform Operations", "Support: support@verisnova.com"],
       },
     ],
   },
   privacy: {
     id: "privacy",
-    title: "HireVeri Privacy Policy",
+    title: "VerisNova Privacy Policy",
     lastUpdated: "May 2026",
     intro:
-      "HireVeri is operated by Verixans Technologies Pvt Ltd (\"we\", \"our\", or \"us\"). This Privacy Policy explains how HireVeri collects, uses, stores, and protects information related to recruiter workflows, candidate evaluations, and platform operations.",
+      "VerisNova is operated by Verixans Technologies Pvt Ltd (\"we\", \"our\", or \"us\"). This Privacy Policy explains how VerisNova collects, uses, stores, and protects information related to recruiter workflows, candidate evaluations, and platform operations.",
     sections: [
       {
         title: "1. Information We Collect",
-        paragraphs: ["HireVeri may collect:"],
+        paragraphs: ["VerisNova may collect:"],
         bullets: [
           "recruiter account information",
           "organization details",
@@ -160,15 +160,15 @@ export const legalDocuments: Record<LegalDocument["id"], LegalDocument> = {
       {
         title: "3. Candidate Data & Interview Evidence",
         paragraphs: [
-          "Organizations using HireVeri are responsible for obtaining appropriate candidate consent, complying with applicable employment laws, and ensuring lawful interview practices.",
-          "HireVeri processes candidate information as part of recruiter-authorized workflows.",
+          "Organizations using VerisNova are responsible for obtaining appropriate candidate consent, complying with applicable employment laws, and ensuring lawful interview practices.",
+          "VerisNova processes candidate information as part of recruiter-authorized workflows.",
         ],
       },
       {
         title: "4. Payment & Billing Data",
         paragraphs: [
           "Payments are processed through authorized third-party payment providers.",
-          "HireVeri may store payment references, invoice records, subscription activity, and GST-related billing metadata. Sensitive payment credentials are not stored directly by HireVeri servers.",
+          "VerisNova may store payment references, invoice records, subscription activity, and GST-related billing metadata. Sensitive payment credentials are not stored directly by VerisNova servers.",
         ],
       },
       {
@@ -178,7 +178,7 @@ export const legalDocuments: Record<LegalDocument["id"], LegalDocument> = {
       },
       {
         title: "6. Data Sharing",
-        paragraphs: ["HireVeri does not sell personal data. Information may be shared with:"],
+        paragraphs: ["VerisNova does not sell personal data. Information may be shared with:"],
         bullets: ["authorized organization users", "infrastructure/service providers", "payment processors", "legal or regulatory authorities where required"],
       },
       {
@@ -191,7 +191,7 @@ export const legalDocuments: Record<LegalDocument["id"], LegalDocument> = {
       {
         title: "8. Cookies & Analytics",
         paragraphs: [
-          "HireVeri may use authentication cookies, session management tools, operational analytics, and security monitoring systems. These help maintain platform stability and user experience.",
+          "VerisNova may use authentication cookies, session management tools, operational analytics, and security monitoring systems. These help maintain platform stability and user experience.",
         ],
       },
       {
@@ -200,15 +200,15 @@ export const legalDocuments: Record<LegalDocument["id"], LegalDocument> = {
       },
       {
         title: "10. Children's Privacy",
-        paragraphs: ["HireVeri is intended for professional hiring and recruitment usage and is not directed toward children."],
+        paragraphs: ["VerisNova is intended for professional hiring and recruitment usage and is not directed toward children."],
       },
       {
         title: "11. Policy Updates",
-        paragraphs: ["We may update this Privacy Policy periodically. Continued use of HireVeri after updates constitutes acceptance of the revised policy."],
+        paragraphs: ["We may update this Privacy Policy periodically. Continued use of VerisNova after updates constitutes acceptance of the revised policy."],
       },
       {
         title: "12. Contact",
-        paragraphs: ["Verixans Technologies Pvt Ltd", "HireVeri Platform Operations", "Support: support@hireveri.com"],
+        paragraphs: ["Verixans Technologies Pvt Ltd", "VerisNova Platform Operations", "Support: support@verisnova.com"],
       },
     ],
   },

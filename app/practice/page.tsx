@@ -18,7 +18,7 @@ export default function PracticeEntryPage() {
       subtitle="Practice technical and behavioral interviews in a calm, AI-guided environment. No recruiters. No pressure."
       footer={
         <>
-          Hiring with HireVeri?{" "}
+          Hiring with VerisNova?{" "}
           <Link
             href="/recruiter-access"
             className="font-semibold text-brand-600 transition hover:text-brand-700"

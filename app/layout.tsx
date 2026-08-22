@@ -3,7 +3,7 @@ import Script from "next/script";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "HireVeri Auth",
+  title: "VerisNova Auth",
   description: "Secure OTP-based access for recruiter and practice candidate sign-in.",
   robots: {
     index: false,

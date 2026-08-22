@@ -6,10 +6,10 @@ type RequestOtpParams = Parameters<typeof requestOTP>[0];
 type RequestOtpResult = Awaited<ReturnType<typeof requestOTP>>;
 
 declare global {
-  var __hireveriOtpRequestInFlight:
+  var __verisnovaOtpRequestInFlight:
     | Map<string, Promise<RequestOtpResult>>
     | undefined;
-  var __hireveriOtpRequestCache:
+  var __verisnovaOtpRequestCache:
     | Map<string, { expiresAt: number; result: RequestOtpResult }>
     | undefined;
 }
@@ -28,19 +28,19 @@ const OTP_REQUEST_CACHE_TTL_MS = 20_000;
 const OTP_REQUEST_CACHE_MAX_ENTRIES = 500;
 
 function getInFlightOtpRequests() {
-  if (!global.__hireveriOtpRequestInFlight) {
-    global.__hireveriOtpRequestInFlight = new Map();
+  if (!global.__verisnovaOtpRequestInFlight) {
+    global.__verisnovaOtpRequestInFlight = new Map();
   }
 
-  return global.__hireveriOtpRequestInFlight;
+  return global.__verisnovaOtpRequestInFlight;
 }
 
 function getOtpRequestCache() {
-  if (!global.__hireveriOtpRequestCache) {
-    global.__hireveriOtpRequestCache = new Map();
+  if (!global.__verisnovaOtpRequestCache) {
+    global.__verisnovaOtpRequestCache = new Map();
   }
 
-  return global.__hireveriOtpRequestCache;
+  return global.__verisnovaOtpRequestCache;
 }
 
 function getRequestKey(params: RequestOtpParams) {

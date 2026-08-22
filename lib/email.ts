@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 
-const defaultFrom = "HireVeri <no-reply@mail.hireveri.com>";
+const defaultFrom = "VerisNova <no-reply@mail.verisnova.com>";
 const resendApiUrl = "https://api.resend.com/emails";
 
 type EmailMessage = {
@@ -35,7 +35,7 @@ function getConfiguredFrom() {
   const resendFromEmail = process.env.RESEND_FROM_EMAIL?.trim();
 
   if (resendFromEmail) {
-    const resendFromName = process.env.RESEND_FROM_NAME?.trim() || "HireVeri";
+    const resendFromName = process.env.RESEND_FROM_NAME?.trim() || "VerisNova";
     return `${resendFromName} <${resendFromEmail}>`;
   }
 
@@ -155,11 +155,11 @@ export async function sendEmail(message: EmailMessage) {
 export async function sendOtpEmail(to: string, otp: string) {
   await sendEmail({
     to,
-    subject: "Your HireVeri OTP",
-    text: `Your HireVeri OTP is ${otp}. It is valid for 5 minutes.`,
+    subject: "Your VerisNova OTP",
+    text: `Your VerisNova OTP is ${otp}. It is valid for 5 minutes.`,
     html: `
       <div style="font-family: Arial, sans-serif">
-        <h2>HireVeri Login</h2>
+        <h2>VerisNova Login</h2>
         <p>Your OTP is:</p>
         <h1 style="letter-spacing:4px">${otp}</h1>
         <p>This code is valid for 5 minutes.</p>

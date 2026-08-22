@@ -10,7 +10,7 @@ import PhoneInput, { type PhoneCountryOption } from "@/components/phone-input";
 
 const recruiterAppUrl =
   process.env.NEXT_PUBLIC_RECRUITER_APP_URL ||
-  "https://recruiter.hireveri.com";
+  "https://recruiter.verisnova.com";
 const recruiterAppUrlTemplate =
   process.env.NEXT_PUBLIC_RECRUITER_APP_URL_TEMPLATE;
 const recruiterAuthAccessUrl = getRecruiterAccessUrl(

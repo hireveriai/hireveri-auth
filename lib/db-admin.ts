@@ -3,7 +3,7 @@ import { Pool } from "pg";
 
 declare global {
   // Reuse a single pool per server process to avoid stacking connections.
-  var __hireveriAdminPool: Pool | undefined;
+  var __verisnovaAdminPool: Pool | undefined;
 }
 
 function shouldForceTransactionPooler() {
@@ -45,7 +45,7 @@ function getPoolPort() {
 }
 
 export function getPool() {
-  if (!global.__hireveriAdminPool) {
+  if (!global.__verisnovaAdminPool) {
     const connectionString =
       process.env.DB_POOL_URL ||
       process.env.POSTGRES_URL ||
@@ -53,7 +53,7 @@ export function getPool() {
       process.env.DATABASE_URL ||
       process.env.POSTGRES_URL_NON_POOLING;
 
-    global.__hireveriAdminPool = new Pool({
+    global.__verisnovaAdminPool = new Pool({
       ...(connectionString
         ? { connectionString: normalizeConnectionString(connectionString) }
         : {
@@ -82,5 +82,5 @@ export function getPool() {
     });
   }
 
-  return global.__hireveriAdminPool;
+  return global.__verisnovaAdminPool;
 }

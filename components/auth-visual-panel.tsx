@@ -58,13 +58,13 @@ export default function AuthVisualPanel() {
   return (
     <section
       aria-roledescription="carousel"
-      aria-label="What HireVeri does"
+      aria-label="What VerisNova does"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       className="relative hidden flex-col justify-center gap-6 border-r border-line bg-surface-1 py-8 lg:flex"
     >
       <span className="mx-8 inline-flex w-fit rounded-full border border-brand-200 bg-surface px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-700">
-        HireVeri Intelligence
+        VerisNova Intelligence
       </span>
 
       {/* One grid cell holds every slide, so the panel keeps a constant height
