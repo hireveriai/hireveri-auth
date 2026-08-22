@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requestOTP } from "@/lib/otp/otp.service";
+import { isDatabaseConnectionError } from "@/lib/db-admin";
 import { isOtpEmailDeliveryError } from "@/lib/email";
 
 type RequestOtpParams = Parameters<typeof requestOTP>[0];
@@ -104,6 +105,13 @@ function isTransientDbCapacityError(error: unknown) {
 function getRequestOtpErrorMessage(error: unknown) {
   if (isTransientDbCapacityError(error)) {
     return "Too many login requests are being processed right now. Please try again in a few seconds.";
+  }
+
+  // Checked before the email branch: the OTP is written before it is sent, so
+  // an unreachable database fails earlier than delivery ever runs. Reporting
+  // that as a mail problem sends debugging in the wrong direction.
+  if (isDatabaseConnectionError(error)) {
+    return error.publicMessage;
   }
 
   if (isOtpEmailDeliveryError(error)) {

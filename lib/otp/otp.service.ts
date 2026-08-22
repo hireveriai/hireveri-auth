@@ -1,4 +1,4 @@
-import { getPool } from "@/lib/db-admin";
+import { connectClient, getPool } from "@/lib/db-admin";
 import { sendOtpEmail } from "@/lib/email";
 import type { PoolClient } from "pg";
 
@@ -150,9 +150,10 @@ export async function requestOTP(params: {
     throw new Error("IDENTITY_REQUIRED");
   }
 
-  /* 1. Ensure an OTP identity exists without claiming a platform auth user */
-  const pool = getPool();
-  const client = await pool.connect();
+  /* 1. Ensure an OTP identity exists without claiming a platform auth user.
+        connectClient() types connection failures as DatabaseConnectionError so
+        an unreachable database is not reported to the user as a mail problem. */
+  const client = await connectClient();
 
   /* 2. Generate OTP */
   const otp = generateOtp();

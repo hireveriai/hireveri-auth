@@ -1,5 +1,32 @@
 // lib/db-admin.ts
-import { Pool } from "pg";
+import { Pool, type PoolClient } from "pg";
+
+/**
+ * Raised when acquiring a connection fails, so callers can tell "the database
+ * is unreachable" apart from "the query failed". Without it a dead connection
+ * surfaced through request-otp's catch-all as "Failed to send OTP", which
+ * points at the mailer and hides the real cause - it cost real debugging time
+ * when auth was pointed at a Supabase project that no longer existed.
+ */
+export class DatabaseConnectionError extends Error {
+  public readonly publicMessage: string;
+
+  constructor(
+    message: string,
+    publicMessage = "We could not reach the database. Please try again in a moment.",
+    options?: { cause?: unknown }
+  ) {
+    super(message, options);
+    this.name = "DatabaseConnectionError";
+    this.publicMessage = publicMessage;
+  }
+}
+
+export function isDatabaseConnectionError(
+  error: unknown
+): error is DatabaseConnectionError {
+  return error instanceof DatabaseConnectionError;
+}
 
 declare global {
   // Reuse a single pool per server process to avoid stacking connections.
@@ -109,4 +136,27 @@ export function getPool() {
   }
 
   return global.__verisnovaAdminPool;
+}
+
+/**
+ * Acquire a pooled client, translating connection failures into
+ * DatabaseConnectionError while preserving the original as `cause` so the
+ * driver's message still reaches the logs.
+ *
+ * Callers must release the returned client in a `finally`. Acquisition is
+ * deliberately kept outside that block: if this throws there is no client to
+ * release, and wrapping it in the same try would attempt to release undefined.
+ */
+export async function connectClient(): Promise<PoolClient> {
+  try {
+    return await getPool().connect();
+  } catch (error) {
+    throw new DatabaseConnectionError(
+      `Database connection failed: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+      undefined,
+      { cause: error }
+    );
+  }
 }
