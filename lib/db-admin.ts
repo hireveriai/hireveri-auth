@@ -30,6 +30,35 @@ function normalizeConnectionString(rawConnectionString: string) {
   }
 }
 
+function isLocalHost(hostname: string | undefined) {
+  return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "0.0.0.0";
+}
+
+/**
+ * SSL defaults ON for any non-local host. It previously defaulted OFF unless
+ * DB_SSL was explicitly "true", which meant a deploy that simply hadn't copied
+ * that one variable would connect without TLS - and Supabase refuses those, so
+ * every query failed and surfaced as a generic 500. Set DB_SSL="false" to
+ * force it off for a remote host that genuinely does not use TLS.
+ */
+function resolveSsl(connectionString?: string) {
+  if (process.env.DB_SSL === "false") {
+    return false as const;
+  }
+
+  let hostname = process.env.DB_HOST;
+
+  if (connectionString) {
+    try {
+      hostname = new URL(connectionString).hostname;
+    } catch {
+      // Unparseable string: fall through to the DB_HOST reading.
+    }
+  }
+
+  return isLocalHost(hostname) ? (false as const) : { rejectUnauthorized: false };
+}
+
 function getPoolPort() {
   const configuredPort = Number(process.env.DB_PORT ?? 5432);
 
@@ -75,10 +104,7 @@ export function getPool() {
         process.env.DB_MAX_LIFETIME_SECONDS ?? 60
       ),
       allowExitOnIdle: true,
-      ssl:
-        process.env.DB_SSL === "true"
-          ? { rejectUnauthorized: false }
-          : false,
+      ssl: resolveSsl(connectionString),
     });
   }
 
