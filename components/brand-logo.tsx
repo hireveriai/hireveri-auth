@@ -21,11 +21,11 @@ export default function BrandLogo({
       aria-label="VerisNova"
       className={`inline-flex items-center gap-2.5 ${className}`.trim()}
     >
-      {/* The glyph is white, so it needs the navy chip to read on a light page.
-          The 126% scale crops the transparent padding baked into the asset. */}
+      {/* Dark-navy mark on white, so the chip is a white tile rather than the
+          old navy one. The 126% scale crops the padding baked into the asset. */}
       <span className="hv-logo-chip relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden">
         <Image
-          src="/verisnova_logo_white.png"
+          src="/verisnova_logo_on_white.png"
           alt=""
           width={180}
           height={180}
