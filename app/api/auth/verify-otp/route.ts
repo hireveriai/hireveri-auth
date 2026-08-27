@@ -16,6 +16,13 @@ import { getPracticeCandidateDashboardUrl } from "@/lib/practice-candidate-url";
 const recruiterApp =
   readAppUrlEnv("RECRUITER_APP_URL") || "https://recruiter.verisnova.com";
 const recruiterAppTemplate = readAppUrlEnv("RECRUITER_APP_URL_TEMPLATE");
+// The platform admin console signs in through this same recruiter_login
+// flow (it has no separate credential system of its own — see
+// admin/lib/server/platform-admin.ts). Unlike every other recruiter_login
+// caller, its `next` target legitimately lives on a different origin, so it
+// needs its own allowlisted app URL rather than being forced through
+// buildRecruiterAppUrl's recruiterApp-only origin check below.
+const adminApp = readAppUrlEnv("ADMIN_APP_URL") || "https://admin.verisnova.com";
 const AUTH_COOKIE_NAMES = [
   "hireveri_session",
   "authToken",
@@ -163,6 +170,28 @@ function buildRecruiterAppUrl(params: {
   const url = new URL(nextPath, recruiterApp);
 
   return url.toString();
+}
+
+/** Full validated URL (not just a path) when `value` targets the admin
+ * console's own origin; null for every other input, including recruiterApp
+ * paths (those stay on getSafeRecruiterNextPath's existing behavior). */
+function getSafeAdminNextUrl(value: unknown) {
+  if (typeof value !== "string" || !value.trim()) {
+    return null;
+  }
+
+  try {
+    const base = new URL(adminApp);
+    const parsed = new URL(value, base);
+
+    if (parsed.origin !== base.origin) {
+      return null;
+    }
+
+    return parsed.toString();
+  } catch {
+    return null;
+  }
 }
 
 function getSafeRecruiterNextPath(value: unknown) {
@@ -374,8 +403,18 @@ export async function POST(req: Request) {
       );
 
       const user = recruiterRes.rows[0];
+      const adminNextUrl = getSafeAdminNextUrl(next);
 
-      if (user) {
+      if (user && adminNextUrl) {
+        // Platform admin console login: land the browser back on
+        // admin.verisnova.com directly. The hireveri_session cookie set
+        // below (shared across *.verisnova.com) is what actually lets
+        // admin.verisnova.com in — whether this email is a registered
+        // platform admin is checked there, server-side, not here. This
+        // account merely needs to be a valid recruiter/org user, same bar
+        // buildRecruiterAppUrl below already required.
+        nextRoute = adminNextUrl;
+      } else if (user) {
         nextRoute = buildRecruiterAppUrl({
           organizationId: user.org_id,
           userId: user.id,
