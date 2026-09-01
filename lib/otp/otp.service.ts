@@ -182,12 +182,20 @@ export async function requestOTP(params: {
         expires_at,
         identity_id,
         intent,
+        email,
         used_at
       )
-      VALUES ($1, $2, $3, $4, $5, NULL)
+      VALUES ($1, $2, $3, $4, $5, $6, NULL)
       RETURNING otp_id
       `,
-      [otp, purpose, expiresAt, identityId, normalizeOtpIntent(intent)]
+      [
+        otp,
+        purpose,
+        expiresAt,
+        identityId,
+        normalizeOtpIntent(intent),
+        normalizeEmail(email)
+      ]
     );
 
     otpId = otpRes.rows[0].otp_id;

@@ -12,6 +12,7 @@ import {
   isTransientDbCapacityError,
 } from "@/lib/db-errors";
 import { getPracticeCandidateDashboardUrl } from "@/lib/practice-candidate-url";
+import { IDLE_SESSION_TIMEOUT_HOURS } from "@/lib/session/idle-timeout";
 
 const recruiterApp =
   readAppUrlEnv("RECRUITER_APP_URL") || "https://recruiter.verisnova.com";
@@ -309,11 +310,18 @@ export async function POST(req: Request) {
       );
     }
 
-    // Retire every active session for this identity, not just expired ones.
-    // ux_signup_session_per_identity allows a single active recruiter session
-    // (auth_intent_id = 2) per identity, and sessions live for 30 days — so
-    // leaving a live one in place made the next sign-in collide with the
-    // unique index, which rolled the whole verification back.
+    // Retire only the sessions that are already dead — expired outright, or
+    // idle past IDLE_SESSION_TIMEOUT_HOURS. Sessions still live on the
+    // recruiter's other devices are deliberately left active: signing in here
+    // must not sign those out.
+    //
+    // This previously retired *every* active session, because
+    // ux_signup_session_per_identity allowed a single active recruiter session
+    // (auth_intent_id = 2) per identity and a second live one collided with the
+    // unique index. That index is dropped in
+    // sql/20260831_auth_sessions_multi_device_idle_timeout.sql, so concurrent
+    // sessions no longer collide.
+    //
     // Safe here: the submitted code has already been matched above, so a wrong
     // code returns 401 before reaching this point.
     await pool.query(
@@ -322,8 +330,12 @@ export async function POST(req: Request) {
       SET is_active = false
       WHERE identity_id = $1::uuid
         AND is_active = true
+        AND (
+          expires_at <= now()
+          OR last_seen_at <= now() - make_interval(hours => $2::int)
+        )
       `,
-      [identityId]
+      [identityId, IDLE_SESSION_TIMEOUT_HOURS]
     );
 
     const verifyRes = await pool.query(
