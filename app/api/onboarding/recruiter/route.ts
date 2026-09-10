@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { readAppUrlEnv } from "@/lib/legacy-domain";
 import { getPool } from "@/lib/db-admin";
 import { sendEmail } from "@/lib/email";
+import { sendWelcomeEmail } from "@/lib/emails/welcome";
 import { requireSession } from "@/lib/session/requireSession";
 import { fallbackRecruiterRoles } from "@/lib/pools/fallback-pools";
 
@@ -372,14 +373,33 @@ export async function POST(req: Request) {
       }
     }
 
+    const nextRoute = buildRecruiterAppUrl({
+      organizationId: result?.organization_id,
+      userId: result?.user_id,
+      nextPath: getSafeRecruiterNextPath(next),
+    });
+
+    /* Welcome mail rides the same successful-onboarding point as the internal
+       signup alert above, so both fire exactly when sp_onboard_recruiter has
+       actually created the workspace. sendWelcomeEmail never throws and holds
+       its own idempotency claim, so a resubmitted onboarding POST cannot
+       produce a second email and a mail outage cannot fail this request.
+
+       The CTA reuses nextRoute - the very URL this response redirects the
+       browser to - so the email lands the recruiter on their own dashboard
+       (organization and user identity attached) rather than the marketing
+       site. */
+    await sendWelcomeEmail({
+      identityId: identity_id,
+      audience: "recruiter",
+      firstName,
+      recruiterDashboardUrl: nextRoute,
+    });
+
     return NextResponse.json({
       success: true,
       result,
-      nextRoute: buildRecruiterAppUrl({
-        organizationId: result?.organization_id,
-        userId: result?.user_id,
-        nextPath: getSafeRecruiterNextPath(next),
-      }),
+      nextRoute,
     });
   } catch (err) {
     const message =
