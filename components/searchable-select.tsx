@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 export type SearchableSelectOption = {
   id: string;
@@ -45,7 +46,18 @@ export default function SearchableSelect({
 }: SearchableSelectProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [menuRect, setMenuRect] = useState<{
+    top: number;
+    left: number;
+    width: number;
+  } | null>(null);
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  const optionRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const instanceId = useRef(
+    `select-${placeholder.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`
+  ).current;
 
   const selectedOption = useMemo(
     () => options.find((option) => option.id === valueId) ?? null,
@@ -75,12 +87,63 @@ export default function SearchableSelect({
   }, [options, query]);
 
   useEffect(() => {
+    setHighlightedIndex(0);
+  }, [query, open]);
+
+  useEffect(() => {
+    optionRefs.current[highlightedIndex]?.scrollIntoView({ block: "nearest" });
+  }, [highlightedIndex]);
+
+  function selectOption(option: SearchableSelectOption) {
+    onChange(option);
+    setOpen(false);
+    setQuery("");
+  }
+
+  function handleSearchKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setHighlightedIndex((current) =>
+        filteredOptions.length
+          ? (current + 1) % filteredOptions.length
+          : current
+      );
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setHighlightedIndex((current) =>
+        filteredOptions.length
+          ? (current - 1 + filteredOptions.length) % filteredOptions.length
+          : current
+      );
+    } else if (event.key === "Enter") {
+      event.preventDefault();
+      const option = filteredOptions[highlightedIndex];
+
+      if (option) {
+        selectOption(option);
+      }
+    } else if (event.key === "Escape") {
+      event.preventDefault();
+      setOpen(false);
+      setQuery("");
+    } else if (event.key === "Tab") {
+      setOpen(false);
+      setQuery("");
+    }
+  }
+
+  useEffect(() => {
     if (!open) {
       return;
     }
 
     function handleClickOutside(event: MouseEvent) {
-      if (!rootRef.current?.contains(event.target as Node)) {
+      const target = event.target as Node;
+
+      if (
+        !rootRef.current?.contains(target) &&
+        !menuRef.current?.contains(target)
+      ) {
         setOpen(false);
         setQuery("");
       }
@@ -90,6 +153,30 @@ export default function SearchableSelect({
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    function updateMenuRect() {
+      const rect = rootRef.current?.getBoundingClientRect();
+
+      if (rect) {
+        setMenuRect({ top: rect.bottom, left: rect.left, width: rect.width });
+      }
+    }
+
+    updateMenuRect();
+
+    window.addEventListener("resize", updateMenuRect);
+    window.addEventListener("scroll", updateMenuRect, true);
+
+    return () => {
+      window.removeEventListener("resize", updateMenuRect);
+      window.removeEventListener("scroll", updateMenuRect, true);
     };
   }, [open]);
 
@@ -112,6 +199,21 @@ export default function SearchableSelect({
           }
 
           setOpen((current) => !current);
+        }}
+        onKeyDown={(event) => {
+          if (error) {
+            return;
+          }
+
+          if (
+            event.key === "ArrowDown" ||
+            event.key === "ArrowUp" ||
+            event.key === "Enter" ||
+            event.key === " "
+          ) {
+            event.preventDefault();
+            setOpen(true);
+          }
         }}
         className={`input flex items-center justify-between gap-3 text-left ${
           error ? "border-signal-risk text-signal-risk" : ""
@@ -137,65 +239,93 @@ export default function SearchableSelect({
         <p className="mt-2 text-xs text-signal-risk">{error}</p>
       ) : null}
 
-      {open ? (
-        <div className="absolute left-0 right-0 z-30 mt-2 overflow-hidden rounded-xl border border-line bg-surface shadow-lg backdrop-blur-md">
-          <div className="border-b border-line p-3">
-            <input
-              autoFocus
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder={searchPlaceholder}
-              className="input !bg-surface-2 !py-2 text-sm"
-            />
-          </div>
+      {open && menuRect
+        ? createPortal(
+            <div
+              ref={menuRef}
+              style={{
+                position: "fixed",
+                top: menuRect.top + 8,
+                left: menuRect.left,
+                width: menuRect.width,
+              }}
+              className="z-30 overflow-hidden rounded-xl border border-line bg-surface shadow-lg backdrop-blur-md"
+            >
+              <div className="border-b border-line p-3">
+                <input
+                  autoFocus
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  onKeyDown={handleSearchKeyDown}
+                  placeholder={searchPlaceholder}
+                  className="input !bg-surface-2 !py-2 text-sm"
+                  role="combobox"
+                  aria-expanded="true"
+                  aria-controls={`${instanceId}-listbox`}
+                  aria-activedescendant={
+                    filteredOptions[highlightedIndex]
+                      ? `${instanceId}-option-${filteredOptions[highlightedIndex].id}`
+                      : undefined
+                  }
+                />
+              </div>
 
-          <div className="max-h-64 overflow-y-auto p-2">
-            {filteredOptions.length ? (
-              filteredOptions.map((option) => (
-                <button
-                  key={option.id}
-                  type="button"
-                  onClick={() => {
-                    onChange(option);
-                    setOpen(false);
-                    setQuery("");
-                  }}
-                  className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left transition hover:bg-surface-2 ${
-                    option.id === valueId ? "bg-brand-50" : ""
-                  }`.trim()}
-                >
-                  <span className="flex min-w-0 items-start gap-2">
-                    {option.icon ? (
-                      <span className="pt-0.5 text-base">{option.icon}</span>
-                    ) : null}
+              <div
+                id={`${instanceId}-listbox`}
+                role="listbox"
+                className="max-h-64 overflow-y-auto p-2"
+              >
+                {filteredOptions.length ? (
+                  filteredOptions.map((option, index) => (
+                    <button
+                      key={option.id}
+                      id={`${instanceId}-option-${option.id}`}
+                      ref={(el) => {
+                        optionRefs.current[index] = el;
+                      }}
+                      type="button"
+                      role="option"
+                      aria-selected={option.id === valueId}
+                      onMouseEnter={() => setHighlightedIndex(index)}
+                      onClick={() => selectOption(option)}
+                      className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left transition hover:bg-surface-2 ${
+                        option.id === valueId ? "bg-brand-50" : ""
+                      } ${index === highlightedIndex ? "bg-surface-2" : ""}`.trim()}
+                    >
+                      <span className="flex min-w-0 items-start gap-2">
+                        {option.icon ? (
+                          <span className="pt-0.5 text-base">{option.icon}</span>
+                        ) : null}
 
-                    <span className="min-w-0">
-                      <span className="block truncate text-sm text-ink-strong">
-                        {option.label}
+                        <span className="min-w-0">
+                          <span className="block truncate text-sm text-ink-strong">
+                            {option.label}
+                          </span>
+                          {option.description ? (
+                            <span className="block truncate text-xs text-ink-muted">
+                              {option.description}
+                            </span>
+                          ) : null}
+                        </span>
                       </span>
-                      {option.description ? (
-                        <span className="block truncate text-xs text-ink-muted">
-                          {option.description}
+
+                      {option.trailing ? (
+                        <span className="shrink-0 text-xs text-brand-600">
+                          {option.trailing}
                         </span>
                       ) : null}
-                    </span>
-                  </span>
-
-                  {option.trailing ? (
-                    <span className="shrink-0 text-xs text-brand-600">
-                      {option.trailing}
-                    </span>
-                  ) : null}
-                </button>
-              ))
-            ) : (
-              <div className="px-3 py-4 text-sm text-ink-muted">
-                {emptyMessage}
+                    </button>
+                  ))
+                ) : (
+                  <div className="px-3 py-4 text-sm text-ink-muted">
+                    {emptyMessage}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        </div>
-      ) : null}
+            </div>,
+            document.body
+          )
+        : null}
     </div>
   );
 }
