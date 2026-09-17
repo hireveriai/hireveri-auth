@@ -3,7 +3,7 @@ import { getPool } from "@/lib/db-admin";
 import { fallbackCountries } from "@/lib/pools/fallback-pools";
 
 /**
- * hireveri_countries is the one pool table with quoted camelCase columns
+ * verisnova_countries is the one pool table with quoted camelCase columns
  * ("isActive", "sortOrder", …). Unquoted snake_case names fail to resolve
  * against it, which silently sent every request to the 20-country fallback.
  */
@@ -12,7 +12,7 @@ const COUNTRIES_QUERY = `
     name,
     "isoCode" as "isoCode",
     "phoneCode" as "phoneCode"
-  from public.hireveri_countries
+  from public.verisnova_countries
   where "isActive" = true
   order by "isDefault" desc, "sortOrder" asc, name asc
 `;

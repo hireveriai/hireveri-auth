@@ -13,7 +13,7 @@ export async function GET() {
         min,
         max,
         sort_order as "sortOrder"
-      from public.hireveri_company_sizes
+      from public.verisnova_company_sizes
       where is_active = true
       order by sort_order asc, label asc
       `

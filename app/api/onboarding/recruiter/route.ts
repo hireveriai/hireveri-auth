@@ -298,7 +298,7 @@ export async function POST(req: Request) {
       const roleLookup = await pool.query(
         `
         select legacy_role_id
-        from public.hireveri_recruiter_roles
+        from public.verisnova_recruiter_roles
         where id = $1::uuid
           and is_active = true
         limit 1

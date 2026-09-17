@@ -11,7 +11,7 @@ export async function GET() {
         id,
         name,
         sort_order as "sortOrder"
-      from public.hireveri_recruiter_roles
+      from public.verisnova_recruiter_roles
       where is_active = true
       order by sort_order asc, name asc
       `
