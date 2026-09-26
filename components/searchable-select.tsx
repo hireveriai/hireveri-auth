@@ -24,6 +24,46 @@ type SearchableSelectProps = {
   onChange: (option: SearchableSelectOption) => void;
 };
 
+type MenuPlacement = {
+  top?: number;
+  bottom?: number;
+  left: number;
+  width: number;
+  listMaxHeight: number;
+};
+
+const MENU_GAP = 8; // space between the trigger and the menu
+const VIEWPORT_MARGIN = 12; // keep the menu this far from the window edges
+const SEARCH_HEADER_HEIGHT = 70; // search box area above the option list
+const PREFERRED_LIST_HEIGHT = 256;
+const MIN_LIST_HEIGHT = 96;
+
+// Opens below the trigger when the full menu fits there, otherwise on
+// whichever side has more room, and caps the list to that room so every
+// option stays reachable by scrolling instead of running off-screen.
+function placeMenu(trigger: DOMRect): MenuPlacement {
+  const viewportHeight = window.innerHeight;
+  const viewportWidth = window.innerWidth;
+  const wanted = SEARCH_HEADER_HEIGHT + PREFERRED_LIST_HEIGHT;
+  const spaceBelow = viewportHeight - trigger.bottom - MENU_GAP - VIEWPORT_MARGIN;
+  const spaceAbove = trigger.top - MENU_GAP - VIEWPORT_MARGIN;
+  const openUp = spaceBelow < wanted && spaceAbove > spaceBelow;
+  const available = openUp ? spaceAbove : spaceBelow;
+  const listMaxHeight = Math.max(
+    MIN_LIST_HEIGHT,
+    Math.min(PREFERRED_LIST_HEIGHT, available - SEARCH_HEADER_HEIGHT)
+  );
+  const width = Math.min(trigger.width, viewportWidth - VIEWPORT_MARGIN * 2);
+  const left = Math.min(
+    Math.max(VIEWPORT_MARGIN, trigger.left),
+    viewportWidth - width - VIEWPORT_MARGIN
+  );
+
+  return openUp
+    ? { bottom: viewportHeight - trigger.top + MENU_GAP, left, width, listMaxHeight }
+    : { top: trigger.bottom + MENU_GAP, left, width, listMaxHeight };
+}
+
 function SelectSkeleton() {
   return (
     <div className="input relative mt-0 animate-pulse overflow-hidden">
@@ -46,11 +86,7 @@ export default function SearchableSelect({
 }: SearchableSelectProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [menuRect, setMenuRect] = useState<{
-    top: number;
-    left: number;
-    width: number;
-  } | null>(null);
+  const [menuRect, setMenuRect] = useState<MenuPlacement | null>(null);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const rootRef = useRef<HTMLDivElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -165,7 +201,7 @@ export default function SearchableSelect({
       const rect = rootRef.current?.getBoundingClientRect();
 
       if (rect) {
-        setMenuRect({ top: rect.bottom, left: rect.left, width: rect.width });
+        setMenuRect(placeMenu(rect));
       }
     }
 
@@ -245,11 +281,12 @@ export default function SearchableSelect({
               ref={menuRef}
               style={{
                 position: "fixed",
-                top: menuRect.top + 8,
+                top: menuRect.top,
+                bottom: menuRect.bottom,
                 left: menuRect.left,
                 width: menuRect.width,
               }}
-              className="z-30 overflow-hidden rounded-xl border border-line bg-surface shadow-lg backdrop-blur-md"
+              className="z-50 overflow-hidden rounded-xl border border-line bg-surface shadow-lg backdrop-blur-md"
             >
               <div className="border-b border-line p-3">
                 <input
@@ -273,7 +310,8 @@ export default function SearchableSelect({
               <div
                 id={`${instanceId}-listbox`}
                 role="listbox"
-                className="max-h-64 overflow-y-auto p-2"
+                style={{ maxHeight: menuRect.listMaxHeight }}
+                className="overflow-y-auto overscroll-contain p-2"
               >
                 {filteredOptions.length ? (
                   filteredOptions.map((option, index) => (
