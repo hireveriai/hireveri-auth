@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requestOTP } from "@/lib/otp/otp.service";
 import { isDatabaseConnectionError } from "@/lib/db-admin";
 import { isOtpEmailDeliveryError } from "@/lib/email";
+import { isOtpRateLimitError } from "@/lib/otp/otp-limits";
 
 type RequestOtpParams = Parameters<typeof requestOTP>[0];
 type RequestOtpResult = Awaited<ReturnType<typeof requestOTP>>;
@@ -241,6 +242,10 @@ export async function POST(req: Request) {
       expiresIn: result.expiresIn,
     });
   } catch (err) {
+    if (isOtpRateLimitError(err)) {
+      return NextResponse.json({ error: err.publicMessage }, { status: 429 });
+    }
+
     console.error("REQUEST OTP ERROR:", err);
 
     return NextResponse.json(
