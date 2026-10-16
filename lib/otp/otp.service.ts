@@ -1,14 +1,11 @@
 import { connectClient, getPool } from "@/lib/db-admin";
 import { sendOtpEmail } from "@/lib/email";
+import { generateOtp, reserveOtpIssue } from "@/lib/otp/otp-limits";
 import type { PoolClient } from "pg";
 
 const OTP_EXPIRY_MINUTES = 5;
 
 /* ------------------ helpers ------------------ */
-
-function generateOtp(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-}
 
 function normalizeIdentityIntent(intent: string) {
   if (intent === "recruiter" || intent === "recruiter_login") {
@@ -173,7 +170,13 @@ export async function requestOTP(params: {
   try {
     identityId = await resolveIdentity({ client, email, phone, intent });
 
-    /* 3. Store OTP before delivery so sent codes are always valid */
+    /* 3. Store OTP before delivery so sent codes are always valid. The
+          per-identity cap and voiding of older codes share a transaction
+          with the insert. resolveIdentity stays outside it: its legacy
+          unique-violation fallback cannot run in an aborted transaction. */
+    await client.query("BEGIN");
+    await reserveOtpIssue(client, identityId);
+
     const otpRes = await client.query(
       `
       INSERT INTO user_otps (
@@ -199,6 +202,10 @@ export async function requestOTP(params: {
     );
 
     otpId = otpRes.rows[0].otp_id;
+    await client.query("COMMIT");
+  } catch (error) {
+    await client.query("ROLLBACK").catch(() => undefined);
+    throw error;
   } finally {
     client.release();
   }

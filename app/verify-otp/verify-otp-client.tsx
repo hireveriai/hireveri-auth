@@ -154,7 +154,7 @@ export default function VerifyOtpClient() {
     setOtp("");
     setTimer(RESEND_SECONDS);
 
-    await fetch("/api/auth/request-otp", {
+    const res = await fetch("/api/auth/request-otp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -162,6 +162,12 @@ export default function VerifyOtpClient() {
         intent: isRecruiter ? "recruiter_login" : "candidate_practice",
       }),
     });
+
+    // A refused resend (e.g. too many codes requested) used to fail silently.
+    if (!res.ok) {
+      const data = (await res.json().catch(() => null)) as { error?: string } | null;
+      setError(data?.error || "Could not send a new code. Please try again.");
+    }
   }
 
   return (

@@ -11,6 +11,7 @@ import {
   isOtpRejectionError,
   isTransientDbCapacityError,
 } from "@/lib/db-errors";
+import { checkOtpAttempt } from "@/lib/otp/otp-limits";
 import { getPracticeCandidateDashboardUrl } from "@/lib/practice-candidate-url";
 import { IDLE_SESSION_TIMEOUT_HOURS } from "@/lib/session/idle-timeout";
 
@@ -289,21 +290,30 @@ export async function POST(req: Request) {
       req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null;
 
     const pool = getPool();
-    const otpRes = await pool.query(
-      `
-      SELECT otp_id
-      FROM public.user_otps
-      WHERE identity_id = $1::uuid
-        AND otp_code = $2::text
-        AND used_at IS NULL
-        AND (expires_at IS NULL OR expires_at > now())
-      ORDER BY expires_at DESC NULLS LAST, otp_id DESC
-      LIMIT 1
-      `,
-      [identityId, otp]
-    );
+    // Only the newest live code is accepted, and every wrong guess counts
+    // toward OTP_MAX_FAILED_ATTEMPTS; previously any live code matched and
+    // guesses were unlimited.
+    const attempt = await checkOtpAttempt(pool, String(identityId), String(otp));
 
-    if (!otpRes.rows.length) {
+    if (attempt.status === "locked") {
+      return NextResponse.json(
+        { error: "Too many incorrect attempts. Please request a new code." },
+        { status: 429 }
+      );
+    }
+
+    if (attempt.status === "invalid") {
+      return NextResponse.json(
+        {
+          error: `Incorrect code. ${attempt.attemptsRemaining} ${
+            attempt.attemptsRemaining === 1 ? "attempt" : "attempts"
+          } left.`,
+        },
+        { status: 401 }
+      );
+    }
+
+    if (attempt.status === "missing") {
       return NextResponse.json(
         { error: "Invalid or expired OTP" },
         { status: 401 }
