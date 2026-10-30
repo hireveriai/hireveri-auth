@@ -21,16 +21,16 @@ export default function BrandLogo({
       aria-label="VerisNova"
       className={`inline-flex items-center gap-2.5 ${className}`.trim()}
     >
-      {/* Dark-navy mark on white, so the chip is a white tile rather than the
-          old navy one. The 126% scale crops the padding baked into the asset. */}
-      <span className="hv-logo-chip relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden">
+      {/* Light-theme enterprise mark (navy + teal on transparent). Auth
+          surfaces are light-only, so the dark-theme tile is not used here. */}
+      <span className="hv-logo-chip relative flex h-10 w-10 shrink-0 items-center justify-center">
         <Image
-          src="/verisnova_logo_on_white.png"
+          src="/verisnova-logo-light.png"
           alt=""
-          width={180}
-          height={180}
+          width={512}
+          height={512}
           priority={priority}
-          className="h-[126%] w-[126%] max-w-none shrink-0 object-contain"
+          className="h-full w-full object-contain"
         />
       </span>
 
