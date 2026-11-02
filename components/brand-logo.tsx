@@ -21,8 +21,8 @@ export default function BrandLogo({
       aria-label="VerisNova"
       className={`inline-flex items-center gap-2.5 ${className}`.trim()}
     >
-      {/* Light-theme enterprise mark (navy + teal on transparent). Auth
-          surfaces are light-only, so the dark-theme tile is not used here. */}
+      {/* Light-surface logo: the white + teal enterprise mark on its navy
+          tile (the white half would vanish on a light page without it). */}
       <span className="hv-logo-chip relative flex h-10 w-10 shrink-0 items-center justify-center">
         <Image
           src="/verisnova-logo-light.png"

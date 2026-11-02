@@ -82,9 +82,9 @@ body {
   border-radius: 6px;
 }
 
-/* The enterprise mark is navy + teal on a transparent ground, so it sits
-   directly on the surface with no tile — the same lockup the marketing
-   navbar uses. The class stays for the hover lift. */
+/* The light-surface logo carries its own navy tile (rounded corners baked
+   into the artwork), so the chip adds no background — the same lockup the
+   marketing navbar uses. The class stays for the hover lift. */
 .hv-logo-chip {
   transition: transform var(--dur-fast) var(--ease-out);
 }
